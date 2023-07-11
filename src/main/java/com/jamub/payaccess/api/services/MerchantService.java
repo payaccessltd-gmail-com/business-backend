@@ -1,0 +1,141 @@
+package com.jamub.payaccess.api.services;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jamub.payaccess.api.dao.MerchantDao;
+import com.jamub.payaccess.api.dto.MerchantDTO;
+import com.jamub.payaccess.api.dto.UserDTO;
+import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.models.Merchant;
+import com.jamub.payaccess.api.models.MerchantSignUpRequest;
+import com.jamub.payaccess.api.models.User;
+import com.jamub.payaccess.api.models.request.MerchantBusinessBankAccountDataUpdateRequest;
+import com.jamub.payaccess.api.models.request.MerchantBusinessDataUpdateRequest;
+import com.jamub.payaccess.api.models.request.MerchantUserBioDataUpdateRequest;
+import com.jamub.payaccess.api.models.response.PayAccessResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class MerchantService {
+
+    private MerchantDao merchantDao;
+
+    @Autowired
+    public MerchantService(MerchantDao merchantDao){
+        this.merchantDao = merchantDao;
+    }
+
+    public List<Merchant> getAllMerchants(){
+        return merchantDao.getAll();
+    }
+
+    public PayAccessResponse createNewMerchant(MerchantSignUpRequest merchantSignUpRequest) {
+        List<User> existingMerchants = merchantDao.getMerchantUserByEmailAddress(merchantSignUpRequest.getEmailAddress());
+        if(existingMerchants!=null && !existingMerchants.isEmpty())
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+            payAccessResponse.setMessage("Merchant sign up was not successful. A merchant with the email address already is already signed up");
+            return payAccessResponse;
+        }
+        Merchant merchant = merchantDao.save(merchantSignUpRequest);
+        if(merchant!=null)
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("A link has been sent to your email address '"+merchantSignUpRequest.getEmailAddress().toLowerCase()+"'. Please click on the link " +
+                    "to verify your email");
+            return payAccessResponse;
+        }
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Merchant sign up was not successful. Please try again");
+        return payAccessResponse;
+    }
+
+    public PayAccessResponse activateAccount(String emailAddress, String verificationLink) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        Map<String, Object> m = merchantDao.activateAccount(emailAddress, verificationLink);
+
+        List<Merchant> merchantList = (List<Merchant>) m.get("#result-set-1");
+        List<User> userList = (List<User>) m.get("#result-set-2");
+
+        Merchant merchant = merchantList.get(0);
+        User user = userList.get(0);
+
+        if(merchant==null)
+        {
+            payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+            payAccessResponse.setMessage("Merchant profile activation was not successful. Please try again");
+            return payAccessResponse;
+        }
+        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+        payAccessResponse.setMessage("Merchant profile has been activated successfully");
+        String merchantToString = objectMapper.writeValueAsString(merchant);
+        String userToString = objectMapper.writeValueAsString(user);
+        MerchantDTO merchantDto = objectMapper.readValue(merchantToString, MerchantDTO.class);
+        UserDTO userDto = objectMapper.readValue(userToString, UserDTO.class);
+        ArrayList arrayList = new ArrayList();
+        arrayList.add(merchantDto);
+        arrayList.add(userDto);
+        payAccessResponse.setResponseObject(arrayList);
+        return payAccessResponse;
+    }
+
+    public PayAccessResponse updateMerchantBioData(MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest) {
+
+        User user = merchantDao.updateMerchantBioData(merchantUserBioDataUpdateRequest);
+        if(user!=null)
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Merchant Bio-Data updated successfully");
+            return payAccessResponse;
+        }
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Merchant Bio-Data update was not successful. Please try again");
+        return payAccessResponse;
+    }
+
+    public PayAccessResponse updateMerchantBusinessData(MerchantBusinessDataUpdateRequest merchantBusinessDataUpdateRequest) {
+        Merchant merchant = merchantDao.updateMerchantBusinessData(merchantBusinessDataUpdateRequest);
+        if(merchant!=null)
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Merchant Business data updated successfully");
+            return payAccessResponse;
+        }
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Merchant Business data update was not successful. Please try again");
+        return payAccessResponse;
+    }
+
+    public PayAccessResponse updateMerchantBusinessBankAccountData(MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest) {
+        Merchant merchant = merchantDao.updateMerchantBusinessBankAccountData(merchantBusinessBankAccountDataUpdateRequest);
+        if(merchant!=null)
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Merchant bank account details updated successfully");
+            return payAccessResponse;
+        }
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Merchant  bank account details update was not successful. Please try again");
+        return payAccessResponse;
+    }
+}
