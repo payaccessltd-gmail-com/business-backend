@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter @Setter
 public class MerchantBusinessBankAccountDataUpdateRequest {
-    private Long merchantId;
+    private String emailAddress;
     private String businessBvn;
     private String businessBankName;
     private String businessAccountNumber;

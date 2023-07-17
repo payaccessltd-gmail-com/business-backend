@@ -1,7 +1,7 @@
 package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jamub.payaccess.api.models.MerchantSignUpRequest;
+import com.jamub.payaccess.api.models.request.MerchantSignUpRequest;
 import com.jamub.payaccess.api.models.request.MerchantBusinessBankAccountDataUpdateRequest;
 import com.jamub.payaccess.api.models.request.MerchantBusinessDataUpdateRequest;
 import com.jamub.payaccess.api.models.request.MerchantUserBioDataUpdateRequest;

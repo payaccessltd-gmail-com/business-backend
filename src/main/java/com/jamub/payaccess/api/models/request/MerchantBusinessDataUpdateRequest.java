@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Getter @Setter
 public class MerchantBusinessDataUpdateRequest {
-    private Long merchantId;
+    private String emailAddress;
     private String businessDescription;
     private String businessEmail;
     private String primaryMobile;

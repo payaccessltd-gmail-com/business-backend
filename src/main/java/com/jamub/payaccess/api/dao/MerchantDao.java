@@ -5,7 +5,7 @@ import com.jamub.payaccess.api.dao.util.RowMapper;
 import com.jamub.payaccess.api.enums.MerchantStatus;
 import com.jamub.payaccess.api.enums.UserStatus;
 import com.jamub.payaccess.api.models.Merchant;
-import com.jamub.payaccess.api.models.MerchantSignUpRequest;
+import com.jamub.payaccess.api.models.request.MerchantSignUpRequest;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.MerchantBusinessBankAccountDataUpdateRequest;
 import com.jamub.payaccess.api.models.request.MerchantBusinessDataUpdateRequest;
@@ -31,7 +31,6 @@ public class MerchantDao implements Dao<Merchant>{
     private SimpleJdbcCall saveMerchant;
     private SimpleJdbcCall updateMerchant;
     private SimpleJdbcCall deleteMerchant;
-    private SimpleJdbcCall getMerchantUserByEmailAddress;
     private SimpleJdbcCall handleActivateAccount;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -49,10 +48,7 @@ public class MerchantDao implements Dao<Merchant>{
                 .returningResultSet("#result-set-1",
                         MerchantRowMapper.newInstance(Merchant.class));
 
-        getMerchantUserByEmailAddress = new SimpleJdbcCall(jdbcTemplate)
-                .withProcedureName("getMerchantUserByEmailAddress")
-                .returningResultSet("#result-set-1",
-                        RowMapper.newInstance(User.class));
+
 
         saveMerchant = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("CreateNewMerchant")
@@ -72,7 +68,7 @@ public class MerchantDao implements Dao<Merchant>{
                         MerchantRowMapper.newInstance(User.class));
 
         handleUpdateMerchantBusinessData = new SimpleJdbcCall(jdbcTemplate)
-                .withProcedureName("updateMerchantBusinessData")
+                .withProcedureName("UpdateMerchantBusinessData")
                 .returningResultSet("#result-set-1",
                         MerchantRowMapper.newInstance(Merchant.class));
 
@@ -96,7 +92,7 @@ public class MerchantDao implements Dao<Merchant>{
         return result;
     }
 
-    @Override
+//    @Override
     public Merchant save(MerchantSignUpRequest merchantSignUpRequest) {
 
 //        logger.info("merchantSignUpRequest.isSoftwareDeveloper()...{}", merchantSignUpRequest.isSoftwareDeveloper());
@@ -132,14 +128,6 @@ public class MerchantDao implements Dao<Merchant>{
 
     }
 
-    public List<User> getMerchantUserByEmailAddress(String emailAddress) {
-        MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("emailAddress", emailAddress);
-        Map<String, Object> m = getMerchantUserByEmailAddress.execute(in);
-        List<User> result = (List<User>) m.get("#result-set-1");
-
-        return result;
-    }
 
     public Map<String, Object> activateAccount(String emailAddress, String verificationLink) {
         MapSqlParameterSource in = new MapSqlParameterSource()
@@ -152,7 +140,7 @@ public class MerchantDao implements Dao<Merchant>{
 
     public User updateMerchantBioData(MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("userId", merchantUserBioDataUpdateRequest.getUserId())
+                .addValue("emailAddress", merchantUserBioDataUpdateRequest.getEmailAddress())
                 .addValue("firstName", merchantUserBioDataUpdateRequest.getFirstName())
                 .addValue("lastName", merchantUserBioDataUpdateRequest.getLastName())
                 .addValue("gender", merchantUserBioDataUpdateRequest.getGender())
@@ -168,7 +156,7 @@ public class MerchantDao implements Dao<Merchant>{
 
     public Merchant updateMerchantBusinessData(MerchantBusinessDataUpdateRequest merchantBusinessDataUpdateRequest) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("merchantId", merchantBusinessDataUpdateRequest.getMerchantId())
+                .addValue("emailAddress", merchantBusinessDataUpdateRequest.getEmailAddress())
                 .addValue("businessDescription", merchantBusinessDataUpdateRequest.getBusinessDescription())
                 .addValue("businessEmail", merchantBusinessDataUpdateRequest.getBusinessEmail())
                 .addValue("primaryMobile", merchantBusinessDataUpdateRequest.getPrimaryMobile())
@@ -186,7 +174,7 @@ public class MerchantDao implements Dao<Merchant>{
 
     public Merchant updateMerchantBusinessBankAccountData(MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("merchantId", merchantBusinessBankAccountDataUpdateRequest.getMerchantId())
+                .addValue("emailAddress", merchantBusinessBankAccountDataUpdateRequest.getEmailAddress())
                 .addValue("businessBvn", merchantBusinessBankAccountDataUpdateRequest.getBusinessBvn())
                 .addValue("businessBankName", merchantBusinessBankAccountDataUpdateRequest.getBusinessBankName())
                 .addValue("businessAccountNumber", merchantBusinessBankAccountDataUpdateRequest.getBusinessAccountNumber())

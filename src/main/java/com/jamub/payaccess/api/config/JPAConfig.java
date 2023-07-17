@@ -39,6 +39,7 @@ public class JPAConfig {
         hikariDataSource.setUsername(username);
         hikariDataSource.setPassword(password);
         hikariDataSource.setMaximumPoolSize(maximumPoolSize);
+        hikariDataSource.setMaxLifetime(40*1000L);
 //        hikariDataSource.setMetricRegistry(metricRegistry);
 
         return hikariDataSource;

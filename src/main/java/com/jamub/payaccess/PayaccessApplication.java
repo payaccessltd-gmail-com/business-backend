@@ -2,6 +2,7 @@ package com.jamub.payaccess;
 
 import org.springframework.beans.BeansException;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -10,6 +11,7 @@ import org.springframework.core.env.StandardEnvironment;
 import com.github.ulisesbocchio.jar.resources.JarResourceLoader;
 
 @SpringBootApplication
+@EnableAutoConfiguration
 public class PayaccessApplication implements ApplicationContextAware {
 
 	private static ApplicationContext context;

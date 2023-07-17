@@ -1,19 +1,18 @@
 package com.jamub.payaccess.api.models;
 
-import com.jamub.payaccess.api.enums.BusinessCategory;
-import com.jamub.payaccess.api.enums.BusinessType;
-import com.jamub.payaccess.api.enums.Country;
-import com.jamub.payaccess.api.enums.MerchantStatus;
+import com.jamub.payaccess.api.enums.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "merchants")
-public class Merchant {
+public class Merchant  implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -63,4 +62,6 @@ public class Merchant {
     private String businessAccountNumber;
     @Column(nullable= false)
     private String businessAccountName;
+
+
 }
