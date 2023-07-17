@@ -21,6 +21,7 @@ public class MerchantController {
     private MerchantService merchantService;
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @CrossOrigin
     @RequestMapping(value = "/new-merchant-signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public PayAccessResponse newMerchantSignup(@RequestBody MerchantSignUpRequest merchantSignUpRequest) {
         System.out.println("Testing");
