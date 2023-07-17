@@ -37,6 +37,7 @@ public class MerchantDao implements Dao<Merchant>{
     private SimpleJdbcCall handleUpdateMerchantBioData;
     private SimpleJdbcCall handleUpdateMerchantBusinessData;
     private SimpleJdbcCall handleUpdateMerchantBusinessBankAccountData;
+    private SimpleJdbcCall getMerchantUserByEmailAddress;
 
 
     @Autowired
@@ -48,7 +49,11 @@ public class MerchantDao implements Dao<Merchant>{
                 .returningResultSet("#result-set-1",
                         MerchantRowMapper.newInstance(Merchant.class));
 
-
+        getMerchantUserByEmailAddress = new SimpleJdbcCall(jdbcTemplate)
+//                .withFunctionName("GetUserByEmailAddress")
+                .withProcedureName("GetMerchantUserByEmailAddress")
+                .returningResultSet("#result-set-1",
+                        MerchantRowMapper.newInstance(Merchant.class));
 
         saveMerchant = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("CreateNewMerchant")
@@ -183,5 +188,17 @@ public class MerchantDao implements Dao<Merchant>{
         List<Merchant> result = (List<Merchant>) m.get("#result-set-1");
         Merchant merchant = result!=null && !result.isEmpty() ? result.get(0) : null;
         return merchant;
+    }
+
+
+
+    public List<Merchant> getMerchantUserByEmailAddress(String emailAddress) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("emailAddress", emailAddress);
+        Map<String, Object> m = getMerchantUserByEmailAddress.execute(Map.class, in);
+        logger.info("{}", m);
+        List<Merchant> result = (List<Merchant>) m.get("#result-set-1");
+
+        return result;
     }
 }

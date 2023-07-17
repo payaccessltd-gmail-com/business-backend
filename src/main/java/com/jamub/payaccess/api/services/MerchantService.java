@@ -14,6 +14,8 @@ import com.jamub.payaccess.api.models.request.MerchantBusinessBankAccountDataUpd
 import com.jamub.payaccess.api.models.request.MerchantBusinessDataUpdateRequest;
 import com.jamub.payaccess.api.models.request.MerchantUserBioDataUpdateRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,7 @@ public class MerchantService {
 
     private MerchantDao merchantDao;
     private UserDao userDao;
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     public MerchantService(MerchantDao merchantDao, UserDao userDao){
@@ -40,7 +43,8 @@ public class MerchantService {
 
     public PayAccessResponse createNewMerchant(MerchantSignUpRequest merchantSignUpRequest) {
         System.out.println(merchantSignUpRequest.getEmailAddress());
-        List<User> existingMerchantUsers = userDao.getUserByEmailAddress(merchantSignUpRequest.getEmailAddress());
+        List<Merchant> existingMerchantUsers = merchantDao.getMerchantUserByEmailAddress(merchantSignUpRequest.getEmailAddress());
+        logger.info("{}", existingMerchantUsers);
         if(existingMerchantUsers!=null && !existingMerchantUsers.isEmpty())
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();

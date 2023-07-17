@@ -1,6 +1,7 @@
 package com.jamub.payaccess.api.dao;
 
 import com.jamub.payaccess.api.dao.util.MerchantRowMapper;
+import com.jamub.payaccess.api.dao.util.RowMapper;
 import com.jamub.payaccess.api.enums.MerchantStatus;
 import com.jamub.payaccess.api.enums.UserStatus;
 import com.jamub.payaccess.api.models.Customer;
@@ -40,11 +41,11 @@ public class UserDao implements Dao<User>{
 //                .withFunctionName("GetUserByEmailAddress")
                 .withProcedureName("GetUserByEmailAddress")
                 .returningResultSet("#result-set-1",
-                        MerchantRowMapper.newInstance(User.class));
+                        RowMapper.newInstance(User.class));
         handleUpdateUserPin = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("UpdateUserPin")
                 .returningResultSet("#result-set-1",
-                        MerchantRowMapper.newInstance(User.class));
+                        RowMapper.newInstance(User.class));
     }
 
     @Override
@@ -77,6 +78,7 @@ public class UserDao implements Dao<User>{
                 .addValue("emailAddress", emailAddress)
                 .addValue("emailAddress", emailAddress);
         Map<String, Object> m = getUserByEmailAddress.execute(Map.class, in);
+        logger.info("{}", m);
         List<User> result = (List<User>) m.get("#result-set-1");
 
         return result;
