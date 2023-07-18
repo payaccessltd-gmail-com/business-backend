@@ -77,7 +77,7 @@ public class UserDao implements Dao<User>{
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("emailAddress", emailAddress)
                 .addValue("emailAddress", emailAddress);
-        Map<String, Object> m = getUserByEmailAddress.execute(Map.class, in);
+        Map<String, Object> m = getUserByEmailAddress.execute(in);
         logger.info("{}", m);
         List<User> result = (List<User>) m.get("#result-set-1");
 

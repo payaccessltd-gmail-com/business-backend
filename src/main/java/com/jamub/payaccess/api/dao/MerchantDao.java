@@ -20,6 +20,8 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.SQLType;
+import java.sql.Types;
 import java.util.*;
 
 @Repository
@@ -50,7 +52,6 @@ public class MerchantDao implements Dao<Merchant>{
                         MerchantRowMapper.newInstance(Merchant.class));
 
         getMerchantUserByEmailAddress = new SimpleJdbcCall(jdbcTemplate)
-//                .withFunctionName("GetUserByEmailAddress")
                 .withProcedureName("GetMerchantUserByEmailAddress")
                 .returningResultSet("#result-set-1",
                         MerchantRowMapper.newInstance(Merchant.class));
@@ -101,7 +102,6 @@ public class MerchantDao implements Dao<Merchant>{
     public Merchant save(MerchantSignUpRequest merchantSignUpRequest) {
 
 //        logger.info("merchantSignUpRequest.isSoftwareDeveloper()...{}", merchantSignUpRequest.isSoftwareDeveloper());
-        String verificationLink = RandomStringUtils.randomAlphanumeric(128);
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("country", merchantSignUpRequest.getCountry())
                 .addValue("firstName", merchantSignUpRequest.getFirstName())
@@ -112,7 +112,7 @@ public class MerchantDao implements Dao<Merchant>{
                 .addValue("businessCategory", merchantSignUpRequest.getBusinessCategory())
                 .addValue("businessType", merchantSignUpRequest.getBusinessType())
                 .addValue("isSoftwareDeveloper", merchantSignUpRequest.getIsSoftwareDeveloper().equals("1") ? true : false)
-                .addValue("verificationLink", verificationLink)
+                .addValue("verificationLink", merchantSignUpRequest.getVerificationLink())
                 .addValue("userStatus", UserStatus.NOT_ACTIVATED.name())
                 .addValue("merchantStatus", MerchantStatus.IN_PROGRESS.name());
 
@@ -194,8 +194,9 @@ public class MerchantDao implements Dao<Merchant>{
 
     public List<Merchant> getMerchantUserByEmailAddress(String emailAddress) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("emailAddress", emailAddress);
-        Map<String, Object> m = getMerchantUserByEmailAddress.execute(Map.class, in);
+                .addValue("emailAddress", emailAddress, Types.VARCHAR);
+        logger.info("{}", in.getValues());
+        Map<String, Object> m = getMerchantUserByEmailAddress.execute(in);
         logger.info("{}", m);
         List<Merchant> result = (List<Merchant>) m.get("#result-set-1");
 

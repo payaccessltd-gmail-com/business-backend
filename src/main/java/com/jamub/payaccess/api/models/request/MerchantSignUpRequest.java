@@ -17,4 +17,5 @@ public class MerchantSignUpRequest extends BaseRequest{
     private String businessCategory;
     private String businessType;
     private String isSoftwareDeveloper;
+    private String verificationLink;
 }

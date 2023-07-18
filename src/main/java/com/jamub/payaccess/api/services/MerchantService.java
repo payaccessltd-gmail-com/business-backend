@@ -14,12 +14,14 @@ import com.jamub.payaccess.api.models.request.MerchantBusinessBankAccountDataUpd
 import com.jamub.payaccess.api.models.request.MerchantBusinessDataUpdateRequest;
 import com.jamub.payaccess.api.models.request.MerchantUserBioDataUpdateRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +45,7 @@ public class MerchantService {
 
     public PayAccessResponse createNewMerchant(MerchantSignUpRequest merchantSignUpRequest) {
         System.out.println(merchantSignUpRequest.getEmailAddress());
-        List<Merchant> existingMerchantUsers = merchantDao.getMerchantUserByEmailAddress(merchantSignUpRequest.getEmailAddress());
+        List<User> existingMerchantUsers = userDao.getUserByEmailAddress(merchantSignUpRequest.getEmailAddress());
         logger.info("{}", existingMerchantUsers);
         if(existingMerchantUsers!=null && !existingMerchantUsers.isEmpty())
         {
@@ -52,19 +54,26 @@ public class MerchantService {
             payAccessResponse.setMessage("Merchant sign up was not successful. A merchant with the email address already is already signed up");
             return payAccessResponse;
         }
+
+        merchantSignUpRequest.setVerificationLink(RandomStringUtils.randomAlphanumeric(128));
         Merchant merchant = merchantDao.save(merchantSignUpRequest);
         if(merchant!=null)
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("A link has been sent to your email address '"+merchantSignUpRequest.getEmailAddress().toLowerCase()+"'. Please click on the link " +
-                    "to verify your email - ");
+                    "in the email to verify your merchant account");
             return payAccessResponse;
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Merchant sign up was not successful. Please try again");
+        HashMap<String, String> responseObject = new HashMap<>();
+        responseObject.put("verificationLink", merchantSignUpRequest.getVerificationLink());
+        payAccessResponse.setResponseObject(responseObject);
+
+        logger.info("{}", payAccessResponse);
         return payAccessResponse;
     }
 
