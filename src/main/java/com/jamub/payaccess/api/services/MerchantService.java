@@ -108,9 +108,9 @@ public class MerchantService {
         return payAccessResponse;
     }
 
-    public PayAccessResponse updateMerchantBioData(MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest) {
+    public PayAccessResponse updateMerchantBioData(MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest, User authenticatedUser) {
 
-        User user = merchantDao.updateMerchantBioData(merchantUserBioDataUpdateRequest);
+        User user = merchantDao.updateMerchantBioData(merchantUserBioDataUpdateRequest, authenticatedUser);
         if(user!=null)
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
@@ -125,8 +125,8 @@ public class MerchantService {
         return payAccessResponse;
     }
 
-    public PayAccessResponse updateMerchantBusinessData(MerchantBusinessDataUpdateRequest merchantBusinessDataUpdateRequest) {
-        Merchant merchant = merchantDao.updateMerchantBusinessData(merchantBusinessDataUpdateRequest);
+    public PayAccessResponse updateMerchantBusinessData(MerchantBusinessDataUpdateRequest merchantBusinessDataUpdateRequest, User authenticatedUser) {
+        Merchant merchant = merchantDao.updateMerchantBusinessData(merchantBusinessDataUpdateRequest, authenticatedUser);
         if(merchant!=null)
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
@@ -141,8 +141,9 @@ public class MerchantService {
         return payAccessResponse;
     }
 
-    public PayAccessResponse updateMerchantBusinessBankAccountData(MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest) {
-        Merchant merchant = merchantDao.updateMerchantBusinessBankAccountData(merchantBusinessBankAccountDataUpdateRequest);
+    public PayAccessResponse updateMerchantBusinessBankAccountData(MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest,
+                                                                   User authenticatedUser) {
+        Merchant merchant = merchantDao.updateMerchantBusinessBankAccountData(merchantBusinessBankAccountDataUpdateRequest, authenticatedUser);
         if(merchant!=null)
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();

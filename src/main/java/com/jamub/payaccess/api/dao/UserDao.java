@@ -29,6 +29,7 @@ public class UserDao implements Dao<User>{
     private SimpleJdbcCall getUserByEmailAddress;
     private SimpleJdbcCall getCustomers;
     private SimpleJdbcCall handleUpdateUserPin;
+    private SimpleJdbcCall getUserByUsernameAndPassword;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -44,6 +45,10 @@ public class UserDao implements Dao<User>{
                         RowMapper.newInstance(User.class));
         handleUpdateUserPin = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("UpdateUserPin")
+                .returningResultSet("#result-set-1",
+                        RowMapper.newInstance(User.class));
+        getUserByUsernameAndPassword = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("GetUserByUsernameAndPassword")
                 .returningResultSet("#result-set-1",
                         RowMapper.newInstance(User.class));
     }
@@ -84,9 +89,23 @@ public class UserDao implements Dao<User>{
         return result;
     }
 
-    public User updateUserPin(CustomerPinUpdateRequest customerBioDataUpdateRequest) {
+
+    public List<User> getUserByUsernameAndPassword(String username)
+//    , String password
+    {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("userId", customerBioDataUpdateRequest.getUserId())
+                .addValue("username", username);
+//                .addValue("password", password)
+        Map<String, Object> m = getUserByUsernameAndPassword.execute(in);
+        logger.info("{}", m);
+        List<User> result = (List<User>) m.get("#result-set-1");
+
+        return result;
+    }
+
+    public User updateUserPin(CustomerPinUpdateRequest customerBioDataUpdateRequest, User authenticatedUser) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("emailAddress", authenticatedUser.getEmailAddress())
                 .addValue("epinHash", customerBioDataUpdateRequest.getPin());
         Map<String, Object> m = handleUpdateUserPin.execute(in);
         List<User> result = (List<User>) m.get("#result-set-1");

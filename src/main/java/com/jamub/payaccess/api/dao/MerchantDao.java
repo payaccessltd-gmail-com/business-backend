@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.dao;
 
 import com.jamub.payaccess.api.dao.util.MerchantRowMapper;
 import com.jamub.payaccess.api.dao.util.RowMapper;
+import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.MerchantStatus;
 import com.jamub.payaccess.api.enums.UserStatus;
 import com.jamub.payaccess.api.models.Merchant;
@@ -102,12 +103,14 @@ public class MerchantDao implements Dao<Merchant>{
     public Merchant save(MerchantSignUpRequest merchantSignUpRequest) {
 
 //        logger.info("merchantSignUpRequest.isSoftwareDeveloper()...{}", merchantSignUpRequest.isSoftwareDeveloper());
+        String bcryptPassword = UtilityHelper.generateBCryptPassword(merchantSignUpRequest.getPassword());
+        logger.info("bcryptPassword = {}", bcryptPassword);
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("country", merchantSignUpRequest.getCountry())
                 .addValue("firstName", merchantSignUpRequest.getFirstName())
                 .addValue("lastName", merchantSignUpRequest.getLastName())
                 .addValue("emailAddress", merchantSignUpRequest.getEmailAddress())
-                .addValue("password", merchantSignUpRequest.getPassword())
+                .addValue("password", bcryptPassword)
                 .addValue("businessName", merchantSignUpRequest.getBusinessName())
                 .addValue("businessCategory", merchantSignUpRequest.getBusinessCategory())
                 .addValue("businessType", merchantSignUpRequest.getBusinessType())
@@ -143,9 +146,9 @@ public class MerchantDao implements Dao<Merchant>{
         return m;
     }
 
-    public User updateMerchantBioData(MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest) {
+    public User updateMerchantBioData(MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest, User authenticatedUser) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("emailAddress", merchantUserBioDataUpdateRequest.getEmailAddress())
+                .addValue("emailAddress", authenticatedUser.getEmailAddress())
                 .addValue("firstName", merchantUserBioDataUpdateRequest.getFirstName())
                 .addValue("lastName", merchantUserBioDataUpdateRequest.getLastName())
                 .addValue("gender", merchantUserBioDataUpdateRequest.getGender())
@@ -159,9 +162,9 @@ public class MerchantDao implements Dao<Merchant>{
         return user;
     }
 
-    public Merchant updateMerchantBusinessData(MerchantBusinessDataUpdateRequest merchantBusinessDataUpdateRequest) {
+    public Merchant updateMerchantBusinessData(MerchantBusinessDataUpdateRequest merchantBusinessDataUpdateRequest, User authenticatedUser) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("emailAddress", merchantBusinessDataUpdateRequest.getEmailAddress())
+                .addValue("emailAddress", authenticatedUser.getEmailAddress())
                 .addValue("businessDescription", merchantBusinessDataUpdateRequest.getBusinessDescription())
                 .addValue("businessEmail", merchantBusinessDataUpdateRequest.getBusinessEmail())
                 .addValue("primaryMobile", merchantBusinessDataUpdateRequest.getPrimaryMobile())
@@ -177,9 +180,10 @@ public class MerchantDao implements Dao<Merchant>{
         return merchant;
     }
 
-    public Merchant updateMerchantBusinessBankAccountData(MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest) {
+    public Merchant updateMerchantBusinessBankAccountData(MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest,
+                                                          User authenticatedUser) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("emailAddress", merchantBusinessBankAccountDataUpdateRequest.getEmailAddress())
+                .addValue("emailAddress", authenticatedUser.getEmailAddress())
                 .addValue("businessBvn", merchantBusinessBankAccountDataUpdateRequest.getBusinessBvn())
                 .addValue("businessBankName", merchantBusinessBankAccountDataUpdateRequest.getBusinessBankName())
                 .addValue("businessAccountNumber", merchantBusinessBankAccountDataUpdateRequest.getBusinessAccountNumber())

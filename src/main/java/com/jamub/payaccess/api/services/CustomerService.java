@@ -95,9 +95,9 @@ public class CustomerService {
         return payAccessResponse;
     }
 
-    public PayAccessResponse updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest) {
+    public PayAccessResponse updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest, User authenticatedUser) {
 
-        Customer customer = customerDao.updateCustomerBioData(customerBioDataUpdateRequest);
+        Customer customer = customerDao.updateCustomerBioData(customerBioDataUpdateRequest, authenticatedUser);
         if(customer!=null)
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
@@ -112,9 +112,9 @@ public class CustomerService {
         return payAccessResponse;
     }
 
-    public PayAccessResponse updateUserPin(CustomerPinUpdateRequest customerPinUpdateRequest) {
+    public PayAccessResponse updateUserPin(CustomerPinUpdateRequest customerPinUpdateRequest, User authenticatedUser) {
 
-        User user = userDao.updateUserPin(customerPinUpdateRequest);
+        User user = userDao.updateUserPin(customerPinUpdateRequest, authenticatedUser);
         if(user!=null)
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();

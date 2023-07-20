@@ -67,6 +67,9 @@ public class Transaction implements Serializable {
     String merchantName;
     String merchantCode;
     String transactionDetail;
+    String transactionRemark;
+    String transactionSourceDetails;
+    String transactionReceipientDetails;
     String customData;
     @Column(nullable = true)
     String summary;

@@ -1,7 +1,7 @@
 package com.jamub.payaccess.api.enums;
 
 public enum PayAccessStatusCode {
-    GENERAL_ERROR("1"), SUCCESS("0");
+    GENERAL_ERROR("1"), SUCCESS("0"), AUTHORIZATION_FAILED("403");
 
     public final String label;
 

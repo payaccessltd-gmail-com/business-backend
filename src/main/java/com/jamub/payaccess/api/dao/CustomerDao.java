@@ -125,9 +125,9 @@ public class CustomerDao implements Dao<Customer>{
     }
 
 
-    public Customer updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest) {
+    public Customer updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest, User authenticatedUser) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("userId", customerBioDataUpdateRequest.getUserId())
+                .addValue("emailAddress", authenticatedUser.getEmailAddress())
                 .addValue("firstName", customerBioDataUpdateRequest.getFirstName())
                 .addValue("lastName", customerBioDataUpdateRequest.getLastName())
                 .addValue("gender", customerBioDataUpdateRequest.getGender())
