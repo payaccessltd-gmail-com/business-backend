@@ -45,6 +45,7 @@ public class MerchantController {
         return payAccessResponse;
     }
 
+    @CrossOrigin
     @RequestMapping(value = "/activate-account/{emailAddress}/{verificationLink}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public PayAccessResponse activateMerchantAccount(@PathVariable String emailAddress, @PathVariable String verificationLink) throws JsonProcessingException {
         System.out.println("verificationLink");
@@ -59,6 +60,7 @@ public class MerchantController {
     }
 
 
+    @CrossOrigin
     @RequestMapping(value = "/update-merchant-bio-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public PayAccessResponse updateMerchantBioData(@RequestBody MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest,
                                                    HttpServletRequest request,
@@ -77,6 +79,9 @@ public class MerchantController {
             payAccessResponse.setMessage("Authorization failed");
             return payAccessResponse;
     }
+
+
+    @CrossOrigin
     @RequestMapping(value = "/update-merchant-business-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public PayAccessResponse updateMerchantBusinessData(@RequestBody MerchantBusinessDataUpdateRequest merchantBusinessDataUpdateRequest,
                                                         HttpServletRequest request,
@@ -98,6 +103,7 @@ public class MerchantController {
     }
 
 
+    @CrossOrigin
     @RequestMapping(value = "/update-merchant-business-bank-account-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public PayAccessResponse updateMerchantBusinessBankAccountData(@RequestBody MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest,
                                                                    HttpServletRequest request,

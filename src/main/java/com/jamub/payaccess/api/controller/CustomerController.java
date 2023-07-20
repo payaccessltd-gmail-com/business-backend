@@ -28,6 +28,8 @@ public class CustomerController {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+
+    @CrossOrigin
     @RequestMapping(value = "/new-customer-signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public PayAccessResponse newCustomerSignup(@RequestBody CustomerSignUpRequest customerSignUpRequest) {
 
@@ -36,6 +38,9 @@ public class CustomerController {
         return payAccessResponse;
     }
 
+
+
+    @CrossOrigin
     @RequestMapping(value = "/activate-account/{emailAddress}/{otp}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public PayAccessResponse activateMerchantAccount(@PathVariable String emailAddress, @PathVariable String otp) throws JsonProcessingException {
 
@@ -46,6 +51,7 @@ public class CustomerController {
     }
 
 
+    @CrossOrigin
     @RequestMapping(value = "/update-customer-bio-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public PayAccessResponse updateMerchantBioData(@RequestBody CustomerBioDataUpdateRequest customerBioDataUpdateRequest,
                                                    HttpServletRequest request,
@@ -65,6 +71,7 @@ public class CustomerController {
     }
 
 
+    @CrossOrigin
     @RequestMapping(value = "/update-customer-pin", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public PayAccessResponse updateMerchantBusinessData(@RequestBody CustomerPinUpdateRequest customerPinUpdateRequest,
                                                         HttpServletRequest request,
