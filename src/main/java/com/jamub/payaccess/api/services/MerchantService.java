@@ -63,6 +63,7 @@ public class MerchantService {
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("A link has been sent to your email address '"+merchantSignUpRequest.getEmailAddress().toLowerCase()+"'. Please click on the link " +
                     "in the email to verify your merchant account");
+            payAccessResponse.setResponseObject(merchantSignUpRequest.getVerificationLink());
             return payAccessResponse;
         }
 
