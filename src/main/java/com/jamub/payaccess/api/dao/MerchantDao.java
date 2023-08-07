@@ -86,7 +86,7 @@ public class MerchantDao implements Dao<Merchant>{
     }
 
     @Override
-    public Optional<Merchant> get(int id) {
+    public Optional<Merchant> get(Long id) {
         return Optional.empty();
     }
 

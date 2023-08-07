@@ -49,7 +49,7 @@ public class TransactionDao implements Dao<Transaction>{
     }
 
     @Override
-    public Optional<Transaction> get(int id) {
+    public Optional<Transaction> get(Long id) {
         return Optional.empty();
     }
 

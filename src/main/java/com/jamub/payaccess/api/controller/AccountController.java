@@ -5,7 +5,10 @@ import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.models.Account;
 import com.jamub.payaccess.api.models.Customer;
 import com.jamub.payaccess.api.models.User;
-import com.jamub.payaccess.api.models.request.*;
+import com.jamub.payaccess.api.models.request.ActivateCustomerAccountRequest;
+import com.jamub.payaccess.api.models.request.CustomerBioDataUpdateRequest;
+import com.jamub.payaccess.api.models.request.CustomerPinUpdateRequest;
+import com.jamub.payaccess.api.models.request.CustomerSignUpRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.services.AccountService;
 import com.jamub.payaccess.api.services.CustomerService;
@@ -23,8 +26,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.security.NoSuchAlgorithmException;
 
 @RestController
-@RequestMapping("/api/v1/customer")
-public class CustomerController {
+@RequestMapping("/api/v1/accounts")
+public class AccountController {
 
     @Autowired
     private CustomerService customerService;

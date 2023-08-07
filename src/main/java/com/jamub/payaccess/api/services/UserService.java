@@ -19,30 +19,30 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
 
-//    private UserDao userDao;
+    private UserDao userDao;
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-//    @Autowired
-//    public UserService(UserDao userDao){
-//        this.userDao = userDao;
-////        this.authenticationManager = authenticationManager;
-//    }
+    @Autowired
+    public UserService(UserDao userDao){
+        this.userDao = userDao;
+//        this.authenticationManager = authenticationManager;
+    }
 
 
-//    public UserDetails loadUserByUsername(String username ) {
-//
-////        authenticate(username, password);
-////        List<User> allUsers = userDao.getUserByUsernameAndPassword(username);
-////        logger.info("{}", allUsers);
-//
-////        User us = allUsers.get(0);
-//        User us = new User();
-//        return new org.springframework.security.core.userdetails.User(us.getEmailAddress(), us.getPassword(), new ArrayList<>());
-//    }
+    public User getUserById(Long userId) {
+
+        Optional<User> userOptional = userDao.get(userId);
+
+        if(userOptional.isPresent())
+            return userOptional.get();
+
+        return null;
+    }
 
 //    private void authenticate(String username, String password) throws Exception {
 //        try {

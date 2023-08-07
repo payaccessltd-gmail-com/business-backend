@@ -73,6 +73,10 @@ public class Transaction implements Serializable {
     String customData;
     @Column(nullable = true)
     String summary;
+    String sourceWalletNumber;
+    Long sourceWalletId;
+    String destinationWallerNumber;
+    Long destinationWallerId;
 
 
 }

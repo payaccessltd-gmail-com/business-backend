@@ -27,6 +27,8 @@ public class UserDao implements Dao<User>{
 
     JdbcTemplate jdbcTemplate;
     private SimpleJdbcCall getUserByEmailAddress;
+
+    private SimpleJdbcCall getUserById;
     private SimpleJdbcCall getCustomers;
     private SimpleJdbcCall handleUpdateUserPin;
     private SimpleJdbcCall getUserByUsernameAndPassword;
@@ -51,11 +53,21 @@ public class UserDao implements Dao<User>{
                 .withProcedureName("GetUserByUsernameAndPassword")
                 .returningResultSet("#result-set-1",
                         RowMapper.newInstance(User.class));
+        getUserById = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("GetUserById")
+                .returningResultSet("#result-set-1",
+                        RowMapper.newInstance(User.class));
     }
 
     @Override
-    public Optional<User> get(int id) {
-        return Optional.empty();
+    public Optional<User> get(Long id) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("userId", id);
+        Map<String, Object> m = getUserById.execute(in);
+        logger.info("{}", m);
+        List<User> result = (List<User>) m.get("#result-set-1");
+        User us = result.size()>0 ? result.get(0): null;
+        return Optional.of(us);
     }
 
     @Override

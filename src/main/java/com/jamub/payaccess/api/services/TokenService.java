@@ -127,7 +127,51 @@ public class TokenService {
                     }
                 }
             }
-        } catch(ParseException | JOSEException ex) {
+        }
+        catch(ParseException | JOSEException ex) {
+            LOG.error(ex.toString());
+        }
+        return null;
+    }
+
+
+
+
+    public JWTClaimsSet getClaimsFromToken(HttpServletRequest request) throws JsonProcessingException {
+        Enumeration<String> headers = request.getHeaderNames();
+        while(headers.hasMoreElements()) {
+            String key = headers.nextElement();
+            if(key.trim().equalsIgnoreCase("Authorization")) {
+                String authorizationHeader = request.getHeader(key);
+                if(!authorizationHeader.isEmpty()) {
+                    String[] tokenData = authorizationHeader.split(" ");
+                    if(tokenData.length == 2 && tokenData[0].trim().equalsIgnoreCase("Bearer")) {
+                        token = tokenData[1];
+                        LOG.info("Received token: " + token);
+                        break;
+                    }
+                }
+            }
+        }
+
+        try {
+            JWT jwt = JWTParser.parse(token);
+            if(jwt instanceof EncryptedJWT) {
+                EncryptedJWT jwe = (EncryptedJWT) jwt;
+                RSAKey clientJWK = getJSONWebKey(clientPKCS);
+                JWEDecrypter decrypter = new RSADecrypter(clientJWK);
+                jwe.decrypt(decrypter);
+                SignedJWT jws = jwe.getPayload().toSignedJWT();
+
+                RSAKey serverJWK = getPublicKey(serverCertificate);
+                RSASSAVerifier signVerifier = new RSASSAVerifier(serverJWK);
+                if(jws.verify(signVerifier)) {
+                    JWTClaimsSet claims = jws.getJWTClaimsSet();
+                    return claims;
+                }
+            }
+        }
+        catch(ParseException | JOSEException ex) {
             LOG.error(ex.toString());
         }
         return null;

@@ -6,25 +6,30 @@ import com.jamub.payaccess.api.models.Account;
 import com.jamub.payaccess.api.models.Customer;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.*;
+import com.jamub.payaccess.api.models.response.ISWAuthTokenResponse;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
-import com.jamub.payaccess.api.services.AccountService;
-import com.jamub.payaccess.api.services.CustomerService;
-import com.jamub.payaccess.api.services.TokenService;
-import com.jamub.payaccess.api.services.UserService;
+import com.jamub.payaccess.api.services.*;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @RestController
-@RequestMapping("/api/v1/customer")
-public class CustomerController {
+@RequestMapping("/api/v1/ft")
+public class FundsTransferController {
 
     @Autowired
     private CustomerService customerService;
@@ -38,22 +43,50 @@ public class CustomerController {
     @Autowired
     AccountService accountService;
 
+    @Autowired
+    ISWService iswService;
+
+    @Value("${isw.passport.oauth.token.url}")
+    private String oauthTokenEndpoint;
+    @Value("${isw.passport.oauth.clientId}")
+    private String clientId;
+    @Value("${isw.passport.oauth.secretKey}")
+    private String secretKey;
 
 
-    @Value("${cbn.bank.code}")
-    private String cbnBankCode;
+    @Value("${interswitch.api.endpoint}")
+    private String apiEndpoint;
 
     @Value("${default.account.package.code}")
     private String defaultAccountPackageCode;
+    @Value("${cbn.bank.code}")
+    private String cbnBankCode;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @Autowired
+    private RestTemplate restTemplate;
+
 
     @CrossOrigin
-    @RequestMapping(value = "/new-customer-signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public PayAccessResponse newCustomerSignup(@RequestBody CustomerSignUpRequest customerSignUpRequest) {
+    @RequestMapping(value = "/validate-bank-account", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public PayAccessResponse validateBankAccount(@RequestBody ValidateAccountRequest validateAccountRequest) throws Exception {
 
-        PayAccessResponse payAccessResponse = customerService.createNewCustomer(customerSignUpRequest);
+        String authorizationString = "";
+        String signature = "";
+
+        ISWAuthTokenResponse iswAuthTokenResponse = iswService.getToken();
+        if(iswAuthTokenResponse==null)
+            return new PayAccessResponse();
+
+
+        authorizationString = iswAuthTokenResponse.getAccess_token();
+        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String nonce = RandomStringUtils.randomAlphanumeric(32);
+        signature = "GET&" +
+                URLEncoder.encode(apiEndpoint, StandardCharsets.UTF_8.name()) + "&" + sdf.format(new Date()) + "&" + nonce +
+                "&" + clientId + "&" + secretKey;
+        PayAccessResponse payAccessResponse = accountService.validateAccountRecipient(restTemplate, validateAccountRequest, apiEndpoint, authorizationString, signature);
 
         return payAccessResponse;
     }
@@ -61,11 +94,18 @@ public class CustomerController {
 
 
     @CrossOrigin
-    @RequestMapping(value = "/activate-account", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public PayAccessResponse activateMerchantAccount(@RequestBody ActivateCustomerAccountRequest activateCustomerAccountRequest) throws JsonProcessingException {
+    @RequestMapping(value = "/send-funds-to-bank-account", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public PayAccessResponse activateMerchantAccount(@RequestBody ActivateCustomerAccountRequest activateCustomerAccountRequest) throws Exception {
 
-        PayAccessResponse payAccessResponse = customerService.activateAccount(activateCustomerAccountRequest.getEmailAddress(),
-                activateCustomerAccountRequest.getVerificationLink(), activateCustomerAccountRequest.getOtp());
+
+        String authorizationString = "";
+        String signature = "";
+        ISWAuthTokenResponse iswAuthTokenResponse = iswService.getToken();
+        if(iswAuthTokenResponse==null)
+            return new PayAccessResponse();
+
+        PayAccessResponse payAccessResponse = null;
+//        payAccessResponse = accountService.sendFundsToBankAccount(iswAuthTokenResponse, restTemplate, validateAccountRequest, apiEndpoint, authorizationString, signature);
 //        merchantService.getAllMerchants();
 
         return payAccessResponse;

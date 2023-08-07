@@ -8,7 +8,6 @@ import java.util.Date;
 
 @Getter @Setter
 public class CustomerBioDataUpdateRequest {
-    private Long userId;
     private String firstName;
     private String lastName;
     private String gender;

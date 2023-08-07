@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.dao;
 
 import com.jamub.payaccess.api.dao.util.MerchantRowMapper;
 import com.jamub.payaccess.api.dao.util.RowMapper;
+import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.CustomerStatus;
 import com.jamub.payaccess.api.enums.MerchantStatus;
 import com.jamub.payaccess.api.enums.UserStatus;
@@ -31,6 +32,7 @@ public class CustomerDao implements Dao<Customer>{
     private SimpleJdbcCall handleActivateAccount;
     private SimpleJdbcCall getCustomers;
     private SimpleJdbcCall handleUpdateCustomerBioData;
+    private SimpleJdbcCall handleGetCustomerByUserId;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -58,10 +60,14 @@ public class CustomerDao implements Dao<Customer>{
                 .withProcedureName("UpdateCustomerBioData")
                 .returningResultSet("#result-set-1",
                         MerchantRowMapper.newInstance(Customer.class));
+        handleGetCustomerByUserId = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("GetCustomerByUserId")
+                .returningResultSet("#result-set-1",
+                        MerchantRowMapper.newInstance(Customer.class));
     }
 
     @Override
-    public Optional<Customer> get(int id) {
+    public Optional<Customer> get(Long id) {
         return Optional.empty();
     }
 
@@ -86,15 +92,17 @@ public class CustomerDao implements Dao<Customer>{
 
     //    @Override
     public Customer save(CustomerSignUpRequest customerSignUpRequest) {
-
+        String bcryptPassword = UtilityHelper.generateBCryptPassword(customerSignUpRequest.getPassword());
 //        logger.info("merchantSignUpRequest.isSoftwareDeveloper()...{}", merchantSignUpRequest.isSoftwareDeveloper());
         String otp = RandomStringUtils.randomNumeric(4);
+        String verificationLink = RandomStringUtils.randomAlphanumeric(64);
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("mobileNumber", customerSignUpRequest.getMobileNumber())
                 .addValue("emailAddress", customerSignUpRequest.getEmailAddress())
-                .addValue("password", customerSignUpRequest.getPassword())
+                .addValue("password", bcryptPassword)
                 .addValue("otp", otp)
                 .addValue("userStatus", UserStatus.NOT_ACTIVATED.name())
+                .addValue("verificationLink", verificationLink)
                 .addValue("customerStatus", CustomerStatus.IN_PROGRESS.name());
 
         Map<String, Object> m = saveCustomer.execute(in);
@@ -115,10 +123,11 @@ public class CustomerDao implements Dao<Customer>{
     }
 
 
-    public Map<String, Object> activateAccount(String emailAddress, String verificationLink) {
+    public Map<String, Object> activateAccount(String emailAddress, String verificationLink, String otp) {
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("verificationLink", verificationLink)
-                .addValue("emailAddress", emailAddress);
+                .addValue("emailAddress", emailAddress)
+                .addValue("otp", otp);
         Map<String, Object> m = handleActivateAccount.execute(in);
 
         return m;
@@ -127,7 +136,7 @@ public class CustomerDao implements Dao<Customer>{
 
     public Customer updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest, User authenticatedUser) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("emailAddress", authenticatedUser.getEmailAddress())
+                .addValue("userId", authenticatedUser.getId())
                 .addValue("firstName", customerBioDataUpdateRequest.getFirstName())
                 .addValue("lastName", customerBioDataUpdateRequest.getLastName())
                 .addValue("gender", customerBioDataUpdateRequest.getGender())
@@ -142,4 +151,12 @@ public class CustomerDao implements Dao<Customer>{
         return customer;
     }
 
+    public Customer getCustomerByUserId(Long userId) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("userId", userId);
+        Map<String, Object> m = handleGetCustomerByUserId.execute(in);
+        List<Customer> result = (List<Customer>) m.get("#result-set-1");
+        Customer customer = result!=null && !result.isEmpty() ? result.get(0) : null;
+        return customer;
+    }
 }

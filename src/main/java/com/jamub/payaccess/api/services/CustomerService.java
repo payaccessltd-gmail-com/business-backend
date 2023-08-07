@@ -2,12 +2,14 @@ package com.jamub.payaccess.api.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jamub.payaccess.api.dao.AccountDao;
 import com.jamub.payaccess.api.dao.CustomerDao;
 import com.jamub.payaccess.api.dao.MerchantDao;
 import com.jamub.payaccess.api.dao.UserDao;
 import com.jamub.payaccess.api.dto.MerchantDTO;
 import com.jamub.payaccess.api.dto.UserDTO;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.models.Account;
 import com.jamub.payaccess.api.models.Customer;
 import com.jamub.payaccess.api.models.request.*;
 import com.jamub.payaccess.api.models.Merchant;
@@ -15,6 +17,7 @@ import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,14 +29,14 @@ public class CustomerService {
 
     private CustomerDao customerDao;
     private UserDao userDao;
+    private AccountDao accountDao;
+
 
     @Autowired
-    CustomerRepository customerRepository;
-
-    @Autowired
-    public CustomerService(CustomerDao customerDao, UserDao userDao){
+    public CustomerService(CustomerDao customerDao, UserDao userDao, AccountDao accountDao){
         this.customerDao = customerDao;
         this.userDao = userDao;
+        this.accountDao = accountDao;
     }
 
     public List<Customer> getAllCustomers(){
@@ -41,7 +44,7 @@ public class CustomerService {
     }
 
     public PayAccessResponse createNewCustomer(CustomerSignUpRequest customerSignUpRequest) {
-        List<User> existingCustomerUser = customerRepository.getUserByEmailAddress(customerSignUpRequest);
+        List<User> existingCustomerUser = userDao.getUserByEmailAddress(customerSignUpRequest.getEmailAddress());
         if(existingCustomerUser!=null && !existingCustomerUser.isEmpty())
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
@@ -49,7 +52,7 @@ public class CustomerService {
             payAccessResponse.setMessage("Customer sign up was not successful. Customer email address is already signed up");
             return payAccessResponse;
         }
-        Customer customer = customerRepository.save(customerSignUpRequest);
+        Customer customer = customerDao.save(customerSignUpRequest);
         if(customer!=null)
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
@@ -60,33 +63,35 @@ public class CustomerService {
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
-        payAccessResponse.setMessage("Customer sign up was not successful. Please try again");
+        payAccessResponse.setMessage("Customer sign up was successful. Please try again");
         return payAccessResponse;
     }
 
-    public PayAccessResponse activateAccount(String emailAddress, String otp) throws JsonProcessingException {
+    public PayAccessResponse activateAccount(String emailAddress, String verificationLink, String otp) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
-        Map<String, Object> m = customerDao.activateAccount(emailAddress, otp);
+        Map<String, Object> m = customerDao.activateAccount(emailAddress, verificationLink, otp);
 
-        List<Merchant> merchantList = (List<Merchant>) m.get("#result-set-1");
+        List<Customer> customerList = (List<Customer>) m.get("#result-set-1");
         List<User> userList = (List<User>) m.get("#result-set-2");
 
-        Merchant merchant = merchantList.get(0);
+        Customer customer = customerList.get(0);
         User user = userList.get(0);
 
-        if(merchant==null)
+        if(customer==null)
         {
             payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
-            payAccessResponse.setMessage("Merchant profile activation was not successful. Please try again");
+            payAccessResponse.setMessage("Your profile activation was not successful. Please try again");
             return payAccessResponse;
         }
+
+
         payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
-        payAccessResponse.setMessage("Merchant profile has been activated successfully");
-        String merchantToString = objectMapper.writeValueAsString(merchant);
+        payAccessResponse.setMessage("Your profile has been activated successfully");
+        String customerToString = objectMapper.writeValueAsString(customer);
         String userToString = objectMapper.writeValueAsString(user);
-        MerchantDTO merchantDto = objectMapper.readValue(merchantToString, MerchantDTO.class);
+        MerchantDTO merchantDto = objectMapper.readValue(customerToString, MerchantDTO.class);
         UserDTO userDto = objectMapper.readValue(userToString, UserDTO.class);
         ArrayList arrayList = new ArrayList();
         arrayList.add(merchantDto);
@@ -95,7 +100,7 @@ public class CustomerService {
         return payAccessResponse;
     }
 
-    public PayAccessResponse updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest, User authenticatedUser) {
+    public PayAccessResponse updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest, User authenticatedUser, AccountService accountService) {
 
         Customer customer = customerDao.updateCustomerBioData(customerBioDataUpdateRequest, authenticatedUser);
         if(customer!=null)
@@ -105,6 +110,7 @@ public class CustomerService {
             payAccessResponse.setMessage("Customer Bio-Data updated successfully");
             return payAccessResponse;
         }
+
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
@@ -127,5 +133,29 @@ public class CustomerService {
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("User pin update was not successful. Please try again");
         return payAccessResponse;
+    }
+
+
+//    public PayAccessResponse createCustomerAccountPin(Account account, AccountService accountService,
+//                                                      CustomerPinUpdateRequest customerPinUpdateRequest, User authenticatedUser) {
+//
+//        User user = accountDao.createAccountPin(account, customerPinUpdateRequest, authenticatedUser);
+//        if(user!=null)
+//        {
+//            PayAccessResponse payAccessResponse = new PayAccessResponse();
+//            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+//            payAccessResponse.setMessage("User pin updated successfully");
+//            return payAccessResponse;
+//        }
+//
+//        PayAccessResponse payAccessResponse = new PayAccessResponse();
+//        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+//        payAccessResponse.setMessage("User pin update was not successful. Please try again");
+//        return payAccessResponse;
+//    }
+
+    public Customer getCustomerByUserId(Long customerId) {
+        Customer customer = customerDao.getCustomerByUserId(customerId);
+        return customer;
     }
 }
