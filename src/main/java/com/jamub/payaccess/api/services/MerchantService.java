@@ -90,6 +90,7 @@ public class MerchantService {
 
 
         try {
+            logger.info("=========================");
             Properties props = System.getProperties();
             props.put("mail.smtps.host", "smtp.mailgun.org");
             props.put("mail.smtps.auth", "true");
@@ -111,7 +112,7 @@ public class MerchantService {
             t.connect("smtp.mailgun.org", "postmaster@mails.valuenaira.com", "k0l01qaz!QAZ");
             t.sendMessage(msg, msg.getAllRecipients());
 
-            System.out.println("Response: " + t.getLastServerResponse());
+            logger.info("Response: {}" , t.getLastServerResponse());
 
             t.close();
         }
