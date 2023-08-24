@@ -15,10 +15,14 @@ import com.jamub.payaccess.api.models.request.*;
 import com.jamub.payaccess.api.models.Merchant;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
+import com.jamub.payaccess.api.models.response.ValidateAccountResponse;
 import com.jamub.payaccess.api.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +34,9 @@ public class CustomerService {
     private CustomerDao customerDao;
     private UserDao userDao;
     private AccountDao accountDao;
+
+    @Autowired
+    RestTemplate restTemplate;
 
 
     @Autowired
@@ -64,6 +71,17 @@ public class CustomerService {
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Customer sign up was successful. Please try again");
+        return payAccessResponse;
+    }
+
+
+
+    public PayAccessResponse getHoliday() {
+        String uri = "";
+        ResponseEntity<ValidateAccountResponse> responseEntity = restTemplate.getForObject(uri, ResponseEntity.class);
+        ValidateAccountResponse validateAccountResponse = responseEntity.getBody();
+        HttpStatus httpStatus = responseEntity.getStatusCode();
+        PayAccessResponse payAccessResponse = new  PayAccessResponse();
         return payAccessResponse;
     }
 

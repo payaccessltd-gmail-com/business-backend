@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 
 @RestController
@@ -50,6 +51,13 @@ public class FundsTransferController {
     private String oauthTokenEndpoint;
     @Value("${isw.passport.oauth.clientId}")
     private String clientId;
+
+    @Value("${isw.merchant.clientId}")
+    private String merchantClientId;
+
+    @Value("${isw.merchant.secretKey}")
+    private String merchantSecretKey;
+
     @Value("${isw.passport.oauth.secretKey}")
     private String secretKey;
 
@@ -81,12 +89,9 @@ public class FundsTransferController {
 
 
         authorizationString = iswAuthTokenResponse.getAccess_token();
-        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String nonce = RandomStringUtils.randomAlphanumeric(32);
-        signature = "GET&" +
-                URLEncoder.encode(apiEndpoint, StandardCharsets.UTF_8.name()) + "&" + sdf.format(new Date()) + "&" + nonce +
-                "&" + clientId + "&" + secretKey;
-        PayAccessResponse payAccessResponse = accountService.validateAccountRecipient(restTemplate, validateAccountRequest, apiEndpoint, authorizationString, signature);
+        logger.info("authorizationString....{}", authorizationString);
+        PayAccessResponse payAccessResponse = accountService.validateAccountRecipient(restTemplate, validateAccountRequest, apiEndpoint,
+                authorizationString, signature, clientId, secretKey, merchantClientId, merchantSecretKey);
 
         return payAccessResponse;
     }

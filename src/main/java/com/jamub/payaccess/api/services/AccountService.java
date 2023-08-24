@@ -23,8 +23,14 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 
@@ -80,25 +86,51 @@ public class AccountService {
     }
 
     public PayAccessResponse validateAccountRecipient(RestTemplate restTemplate, ValidateAccountRequest validateAccountRequest, String endpointUrl,
-                                                      String authorizationString, String signature) {
+                                                      String authorizationString, String signature, String clientId1, String secretKey1,
+                                                      String merchantClientId, String merchantSecretKey) throws UnsupportedEncodingException, NoSuchAlgorithmException {
 
 
 
         String uri = UriComponentsBuilder
                 .fromUriString(endpointUrl)
-                .path(String.format("%s", "/api/v1/nameenquiry/banks/accounts/names"))
+//                .path(String.format("%s%s%s", "/api/v1/inquiry/bank-code", "/" + validateAccountRequest.getBankCode(), "/account/"+validateAccountRequest.getAccountNumber()))
+                .path("/api/v1/nameenquiry/banks/accounts/names")
                 .build()
                 .toString();
+        log.info("url....{}", uri);
 
-        String nonce = RandomStringUtils.randomNumeric(32);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:ii:ss");
-        String currentTimeStamp = sdf.format(new Date());
+        String nonce = RandomStringUtils.randomAlphanumeric(30);
+        nonce = "aa0e516a32daf5be424c4b1c1d43e6c3";
+        log.info("nonce....{}", nonce);
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        String currentTimeStamp = sdf.format(new Date());
+        Long currentTimeStamp = (new Date().getTime());
+        currentTimeStamp = Instant.now().getEpochSecond();
+        currentTimeStamp = 1692355402L;
+        log.info("currentTimeStamp....{}", currentTimeStamp);
+
+        signature = "GET&" +
+                URLEncoder.encode(uri, StandardCharsets.UTF_8.name()) + "&" + currentTimeStamp + "&" + nonce +
+                "&" + merchantClientId + "&" + merchantSecretKey;
+
+        log.info("Signature....{}", signature);
+        log.info("currentTimeStamp....{}", currentTimeStamp);
+        log.info("clientId....{}", merchantClientId);
+        log.info("secretKey....{}", merchantSecretKey);
+//        signature = Base64.getEncoder().encodeToString(signature.getBytes());
+
+        signature = new String(
+                Base64.getEncoder().encode(MessageDigest.getInstance("SHA-512").digest(signature.getBytes(StandardCharsets.UTF_8))));
+        log.info("Signature....{}", signature);
+        log.info("Authorization.... Basic {}", authorizationString);
+
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "InterswitchAuth " + authorizationString);
+
+        headers.set("Authorization", "InterswitchAuth SUtJQTgzQkREMEI2NTlFMzUzQTI4OUQ1QUQ1QUQ5NzkzNjYwOERENzUwNzI=");
         headers.set("Signature", signature);
-        headers.set("Timestamp", currentTimeStamp);
+        headers.set("Timestamp", currentTimeStamp.toString());
         headers.set("Nonce", nonce);
-        headers.set("SignatureMethod", "SHA1");
+        headers.set("SignatureMethod", "SHA512");
         headers.set("TerminalID", validateAccountRequest.getTerminalId());
         headers.set("bankCode", validateAccountRequest.getBankCode());
         headers.set("accountId", validateAccountRequest.getAccountNumber());

@@ -14,16 +14,28 @@ import com.jamub.payaccess.api.models.request.MerchantBusinessBankAccountDataUpd
 import com.jamub.payaccess.api.models.request.MerchantBusinessDataUpdateRequest;
 import com.jamub.payaccess.api.models.request.MerchantUserBioDataUpdateRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
+import com.sun.mail.smtp.SMTPTransport;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import javax.mail.Authenticator;
+import javax.mail.Message;
+//import javax.mail.Message;
+import javax.mail.Message.RecipientType;
+import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+import java.util.*;
 
 @Service
 public class MerchantService {
@@ -75,6 +87,40 @@ public class MerchantService {
         payAccessResponse.setResponseObject(responseObject);
 
         logger.info("{}", payAccessResponse);
+
+
+        try {
+            Properties props = System.getProperties();
+            props.put("mail.smtps.host", "smtp.mailgun.org");
+            props.put("mail.smtps.auth", "true");
+
+            Session session = Session.getInstance(props, null);
+            Message msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress("test@mails.valuenaira.com"));
+
+            InternetAddress[] addrs = InternetAddress.parse(merchantSignUpRequest.getEmailAddress(), false);
+            msg.setRecipients(Message.RecipientType.TO, addrs);
+
+            msg.setSubject("Hello");
+            msg.setText("Copy the url and paste in your browser to activate your account - http://137.184.47.182:8081/payaccess/api/v1/merchant/activate-account/"+merchantSignUpRequest.getEmailAddress()+"/" + merchantSignUpRequest.getVerificationLink());
+
+            msg.setSentDate(new Date());
+
+            SMTPTransport t =
+                    (SMTPTransport) session.getTransport("smtps");
+            t.connect("smtp.mailgun.org", "postmaster@mails.valuenaira.com", "k0l01qaz!QAZ");
+            t.sendMessage(msg, msg.getAllRecipients());
+
+            System.out.println("Response: " + t.getLastServerResponse());
+
+            t.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            logger.error("Error Sending Mail ...{}", e);
+        }
+
         return payAccessResponse;
     }
 
