@@ -76,6 +76,42 @@ public class MerchantService {
             payAccessResponse.setMessage("A link has been sent to your email address '"+merchantSignUpRequest.getEmailAddress().toLowerCase()+"'. Please click on the link " +
                     "in the email to verify your merchant account");
             payAccessResponse.setResponseObject(merchantSignUpRequest.getVerificationLink());
+
+
+            try {
+                logger.info("=========================");
+                Properties props = System.getProperties();
+                props.put("mail.smtps.host", "smtp.mailgun.org");
+                props.put("mail.smtps.auth", "true");
+
+                Session session = Session.getInstance(props, null);
+                Message msg = new MimeMessage(session);
+                msg.setFrom(new InternetAddress("test@mails.valuenaira.com"));
+
+                InternetAddress[] addrs = InternetAddress.parse(merchantSignUpRequest.getEmailAddress(), false);
+                msg.setRecipients(Message.RecipientType.TO, addrs);
+
+                msg.setSubject("Hello");
+                msg.setText("Copy the url and paste in your browser to activate your account - http://137.184.47.182:8081/payaccess/api/v1/merchant/activate-account/"+merchantSignUpRequest.getEmailAddress()+"/" + merchantSignUpRequest.getVerificationLink());
+
+                msg.setSentDate(new Date());
+
+                SMTPTransport t =
+                        (SMTPTransport) session.getTransport("smtps");
+                t.connect("smtp.mailgun.org", "postmaster@mails.valuenaira.com", "k0l01qaz!QAZ");
+                t.sendMessage(msg, msg.getAllRecipients());
+
+                logger.info("Response: {}" , t.getLastServerResponse());
+
+                t.close();
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+                logger.error("Error Sending Mail ...{}", e);
+            }
+
+
             return payAccessResponse;
         }
 
@@ -89,38 +125,7 @@ public class MerchantService {
         logger.info("{}", payAccessResponse);
 
 
-        try {
-            logger.info("=========================");
-            Properties props = System.getProperties();
-            props.put("mail.smtps.host", "smtp.mailgun.org");
-            props.put("mail.smtps.auth", "true");
 
-            Session session = Session.getInstance(props, null);
-            Message msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress("test@mails.valuenaira.com"));
-
-            InternetAddress[] addrs = InternetAddress.parse(merchantSignUpRequest.getEmailAddress(), false);
-            msg.setRecipients(Message.RecipientType.TO, addrs);
-
-            msg.setSubject("Hello");
-            msg.setText("Copy the url and paste in your browser to activate your account - http://137.184.47.182:8081/payaccess/api/v1/merchant/activate-account/"+merchantSignUpRequest.getEmailAddress()+"/" + merchantSignUpRequest.getVerificationLink());
-
-            msg.setSentDate(new Date());
-
-            SMTPTransport t =
-                    (SMTPTransport) session.getTransport("smtps");
-            t.connect("smtp.mailgun.org", "postmaster@mails.valuenaira.com", "k0l01qaz!QAZ");
-            t.sendMessage(msg, msg.getAllRecipients());
-
-            logger.info("Response: {}" , t.getLastServerResponse());
-
-            t.close();
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-            logger.error("Error Sending Mail ...{}", e);
-        }
 
         return payAccessResponse;
     }
