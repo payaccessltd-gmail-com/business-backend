@@ -1,5 +1,6 @@
 package com.jamub.payaccess.api.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.jamub.payaccess.api.enums.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "merchants")
+@JsonIgnoreProperties(value = { "secretKeyLive", "publicKeyLive", "secretKey", "publicKey" })
 public class Merchant  implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,8 +55,6 @@ public class Merchant  implements Serializable {
     @Column(nullable= false)
     private String businessLogo;
     @Column(nullable= false)
-    private String businessCertificate;
-    @Column(nullable= false)
     private String businessBvn;
     @Column(nullable= false)
     private String businessBankName;
@@ -62,6 +62,24 @@ public class Merchant  implements Serializable {
     private String businessAccountNumber;
     @Column(nullable= false)
     private String businessAccountName;
+    @Column(nullable= false)
+    private String merchantCode;
+    @Column(nullable= false)
+    @Enumerated(EnumType.STRING)
+    private APIMode apiMode;
+    @Column(nullable= true, unique=true)
+    private String secretKey;
+    @Column(nullable= true, unique=true)
+    private String publicKey;
+    @Column(nullable= true, unique=true)
+    private String secretKeyLive;
+    @Column(nullable= true, unique=true)
+    private String publicKeyLive;
+
+    @Column(nullable= false)
+    private String webhookUrl;
+    @Column(nullable= false)
+    private String callbackUrl;
 
 
 }

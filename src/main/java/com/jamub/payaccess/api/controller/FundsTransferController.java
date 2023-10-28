@@ -9,7 +9,6 @@ import com.jamub.payaccess.api.models.request.*;
 import com.jamub.payaccess.api.models.response.ISWAuthTokenResponse;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.services.*;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Date;
 
 @RestController
 @RequestMapping("/api/v1/ft")
@@ -100,7 +93,7 @@ public class FundsTransferController {
 
     @CrossOrigin
     @RequestMapping(value = "/send-funds-to-bank-account", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public PayAccessResponse activateMerchantAccount(@RequestBody ActivateCustomerAccountRequest activateCustomerAccountRequest) throws Exception {
+    public PayAccessResponse activateMerchantAccount(@RequestBody ActivateAccountRequest activateCustomerAccountRequest) throws Exception {
 
 
         String authorizationString = "";

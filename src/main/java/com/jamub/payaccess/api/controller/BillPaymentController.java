@@ -5,7 +5,7 @@ import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.models.Account;
 import com.jamub.payaccess.api.models.Customer;
 import com.jamub.payaccess.api.models.User;
-import com.jamub.payaccess.api.models.request.ActivateCustomerAccountRequest;
+import com.jamub.payaccess.api.models.request.ActivateAccountRequest;
 import com.jamub.payaccess.api.models.request.CustomerBioDataUpdateRequest;
 import com.jamub.payaccess.api.models.request.CustomerPinUpdateRequest;
 import com.jamub.payaccess.api.models.request.CustomerSignUpRequest;
@@ -63,16 +63,7 @@ public class BillPaymentController {
 
 
 
-    @CrossOrigin
-    @RequestMapping(value = "/activate-account", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public PayAccessResponse activateMerchantAccount(@RequestBody ActivateCustomerAccountRequest activateCustomerAccountRequest) throws JsonProcessingException {
 
-        PayAccessResponse payAccessResponse = customerService.activateAccount(activateCustomerAccountRequest.getEmailAddress(),
-                activateCustomerAccountRequest.getVerificationLink(), activateCustomerAccountRequest.getOtp());
-//        merchantService.getAllMerchants();
-
-        return payAccessResponse;
-    }
 
 
     @CrossOrigin

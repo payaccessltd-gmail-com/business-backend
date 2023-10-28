@@ -8,14 +8,10 @@ import lombok.Setter;
 
 @Getter @Setter
 public class MerchantSignUpRequest extends BaseRequest{
-    private String country;
-    private String firstName;
-    private String lastName;
-    private String emailAddress;
-    private String password;
-    private String businessName;
     private String businessCategory;
     private String businessType;
-    private String isSoftwareDeveloper;
-    private String verificationLink;
+    private boolean softwareDeveloper;
+    private String country;
+    private String mobileNumber;
+    private Long merchantId;
 }

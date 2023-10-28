@@ -10,4 +10,5 @@ public class MerchantBusinessBankAccountDataUpdateRequest {
     private String businessBankName;
     private String businessAccountNumber;
     private String businessAccountName;
+    private Long merchantId;
 }

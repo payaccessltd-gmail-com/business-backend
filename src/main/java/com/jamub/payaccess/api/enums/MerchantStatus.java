@@ -1,7 +1,7 @@
 package com.jamub.payaccess.api.enums;
 
 public enum MerchantStatus {
-    IN_PROGRESS("IN PROGRESS"), ACTIVE("ACTIVE"), VERIFIED("VERIFIED"), SUSPENDED("SUSPENDED"), CLOSED("CLOSED"), DELETED("DELETED");
+    PROCESSING("PROCESSING"), COMPLETED("COMPLETED"), ACTIVE("ACTIVE"), SUSPENDED("SUSPENDED"), CLOSED("CLOSED"), DELETED("DELETED");
 
 
 
@@ -11,7 +11,7 @@ public enum MerchantStatus {
         this.value = value;
     }
 
-    public MerchantStatus valueOfLabel(String label) {
+    public static MerchantStatus valueOfLabel(String label) {
         for (MerchantStatus e : values()) {
             if (e.value.equals(label)) {
                 return e;

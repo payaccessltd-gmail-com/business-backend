@@ -85,38 +85,7 @@ public class CustomerService {
         return payAccessResponse;
     }
 
-    public PayAccessResponse activateAccount(String emailAddress, String verificationLink, String otp) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
 
-        PayAccessResponse payAccessResponse = new PayAccessResponse();
-        Map<String, Object> m = customerDao.activateAccount(emailAddress, verificationLink, otp);
-
-        List<Customer> customerList = (List<Customer>) m.get("#result-set-1");
-        List<User> userList = (List<User>) m.get("#result-set-2");
-
-        Customer customer = customerList.get(0);
-        User user = userList.get(0);
-
-        if(customer==null)
-        {
-            payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
-            payAccessResponse.setMessage("Your profile activation was not successful. Please try again");
-            return payAccessResponse;
-        }
-
-
-        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
-        payAccessResponse.setMessage("Your profile has been activated successfully");
-        String customerToString = objectMapper.writeValueAsString(customer);
-        String userToString = objectMapper.writeValueAsString(user);
-        MerchantDTO merchantDto = objectMapper.readValue(customerToString, MerchantDTO.class);
-        UserDTO userDto = objectMapper.readValue(userToString, UserDTO.class);
-        ArrayList arrayList = new ArrayList();
-        arrayList.add(merchantDto);
-        arrayList.add(userDto);
-        payAccessResponse.setResponseObject(arrayList);
-        return payAccessResponse;
-    }
 
     public PayAccessResponse updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest, User authenticatedUser, AccountService accountService) {
 

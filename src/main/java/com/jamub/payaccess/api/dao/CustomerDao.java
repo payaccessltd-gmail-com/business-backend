@@ -29,7 +29,6 @@ public class CustomerDao implements Dao<Customer>{
 
     JdbcTemplate jdbcTemplate;
     private SimpleJdbcCall saveCustomer;
-    private SimpleJdbcCall handleActivateAccount;
     private SimpleJdbcCall getCustomers;
     private SimpleJdbcCall handleUpdateCustomerBioData;
     private SimpleJdbcCall handleGetCustomerByUserId;
@@ -45,13 +44,6 @@ public class CustomerDao implements Dao<Customer>{
                 .withProcedureName("CreateNewCustomer")
                 .returningResultSet("#result-set-1",
                         MerchantRowMapper.newInstance(Customer.class));
-
-        handleActivateAccount = new SimpleJdbcCall(jdbcTemplate)
-                .withProcedureName("ActivateAccountForCustomer")
-                .returningResultSet("#result-set-1",
-                        MerchantRowMapper.newInstance(Customer.class))
-                .returningResultSet("#result-set-2",
-                        MerchantRowMapper.newInstance(User.class));
         getCustomers = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("GetCustomers")
                 .returningResultSet("#result-set-1",
@@ -81,8 +73,8 @@ public class CustomerDao implements Dao<Customer>{
     }
 
     @Override
-    public void update(Customer customer) {
-
+    public Customer update(Customer customer) {
+        return null;
     }
 
     @Override
@@ -123,15 +115,6 @@ public class CustomerDao implements Dao<Customer>{
     }
 
 
-    public Map<String, Object> activateAccount(String emailAddress, String verificationLink, String otp) {
-        MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("verificationLink", verificationLink)
-                .addValue("emailAddress", emailAddress)
-                .addValue("otp", otp);
-        Map<String, Object> m = handleActivateAccount.execute(in);
-
-        return m;
-    }
 
 
     public Customer updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest, User authenticatedUser) {

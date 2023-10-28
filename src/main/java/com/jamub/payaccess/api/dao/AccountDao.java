@@ -67,8 +67,8 @@ public class AccountDao  implements Dao<Account>{
     }
 
     @Override
-    public void update(Account account) {
-
+    public Account update(Account account) {
+        return null;
     }
 
     @Override

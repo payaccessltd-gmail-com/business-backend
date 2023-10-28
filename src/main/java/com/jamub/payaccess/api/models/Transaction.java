@@ -19,16 +19,21 @@ public class Transaction implements Serializable {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     Long id;
-    @Column(nullable = false)
+    @Column(nullable = true)
     String transactionRef;
     Long customerId;
     Long recipientCustomerId;
+
+    @Column(nullable = false, unique=true)
     String orderRef;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     Channel channel;
     @Column(nullable = false)
-    LocalDateTime transactionDate;
+    LocalDateTime createdAt;
+    @Column(nullable = false)
+    LocalDateTime updatedAt;
+    LocalDateTime deletedAt;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     ServiceType serviceType;
@@ -40,14 +45,16 @@ public class Transaction implements Serializable {
     String payerMobile;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    TransactionStatus status;
+    TransactionStatus transactionStatus;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    PayAccessCurrency probasePayCurrency;
-    @Column(nullable = false)
+    PayAccessCurrency payAccessCurrency;
+    @Column(nullable = true)
     Long acquirerId;
-    @Column(nullable = false)
-    Long deviceId;
+    @Column(nullable = true)
+    Long terminalId;
+    @Column(nullable = true)
+    String terminalCode;
     String messageRequest;
     String messageResponse;
     @Column(nullable = true, precision=10, scale=2)
@@ -75,8 +82,13 @@ public class Transaction implements Serializable {
     String summary;
     String sourceWalletNumber;
     Long sourceWalletId;
-    String destinationWallerNumber;
-    Long destinationWallerId;
+    String destinationWalletNumber;
+    Long destinationWalletId;
+    @Column(nullable = true)
+    String redirectUrl;
+    @Column(nullable = true)
+    String switchTransactionRef;
+
 
 
 }

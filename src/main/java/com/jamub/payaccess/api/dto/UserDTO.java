@@ -18,7 +18,7 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private String emailAddress;
-    private boolean isSoftwareDeveloper;
+    private Boolean softwareDeveloper;
     private String verificationLink;
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;

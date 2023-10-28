@@ -60,16 +60,7 @@ public class CustomerController {
 
 
 
-    @CrossOrigin
-    @RequestMapping(value = "/activate-account", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public PayAccessResponse activateMerchantAccount(@RequestBody ActivateCustomerAccountRequest activateCustomerAccountRequest) throws JsonProcessingException {
 
-        PayAccessResponse payAccessResponse = customerService.activateAccount(activateCustomerAccountRequest.getEmailAddress(),
-                activateCustomerAccountRequest.getVerificationLink(), activateCustomerAccountRequest.getOtp());
-//        merchantService.getAllMerchants();
-
-        return payAccessResponse;
-    }
 
 
     @CrossOrigin

@@ -11,6 +11,6 @@ public interface Dao<T> {
     Optional<T> get(Long id);
     List<T> getAll();
 //    T save(MerchantSignUpRequest t);
-    void update(T t);
+    T update(T t);
     void delete(T t);
 }

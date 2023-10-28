@@ -2,15 +2,20 @@ package com.jamub.payaccess.api.controller;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.enums.Permission;
 import com.jamub.payaccess.api.models.User;
+import com.jamub.payaccess.api.models.request.ForgotPasswordRequest;
 import com.jamub.payaccess.api.models.request.MerchantUserBioDataUpdateRequest;
+import com.jamub.payaccess.api.models.request.UpdateForgotPasswordRequest;
 import com.jamub.payaccess.api.models.request.ValidateOtpRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.models.response.TokenResponse;
 import com.jamub.payaccess.api.services.TokenService;
+import com.jamub.payaccess.api.services.UserService;
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -29,6 +34,9 @@ public class AuthenticationController {
 
     @Autowired
     TokenService tokenService;
+
+    @Autowired
+    UserService userService;
 
     @Value("${token.end.point.url}")
     String tokenEndpointUrl;

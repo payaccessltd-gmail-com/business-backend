@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ActivateCustomerAccountRequest {
+public class ActivateAccountRequest {
 
     private String emailAddress;
     private String otp;
