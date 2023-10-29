@@ -79,6 +79,15 @@ public class UserController {
         User authenticatedUser = null;
         try {
             authenticatedUser = tokenService.getUserFromToken(request);
+
+
+            if(authenticatedUser==null)
+            {
+                PayAccessResponse payAccessResponse = new  PayAccessResponse();
+                payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+                payAccessResponse.setMessage("Authorization not granted. OTP expired");
+                return payAccessResponse;
+            }
         }
         catch(Exception e)
         {
@@ -122,6 +131,15 @@ public class UserController {
         User authenticatedUser = null;
         try {
             authenticatedUser = tokenService.getUserFromToken(request);
+
+
+            if(authenticatedUser==null)
+            {
+                PayAccessResponse payAccessResponse = new  PayAccessResponse();
+                payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+                payAccessResponse.setMessage("Authorization not granted. OTP expired");
+                return payAccessResponse;
+            }
         }
         catch(Exception e)
         {
@@ -142,6 +160,15 @@ public class UserController {
         User authenticatedUser = null;
         try {
             authenticatedUser = tokenService.getUserFromToken(request);
+
+
+            if(authenticatedUser==null)
+            {
+                PayAccessResponse payAccessResponse = new  PayAccessResponse();
+                payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+                payAccessResponse.setMessage("Authorization not granted. OTP expired");
+                return payAccessResponse;
+            }
         }
         catch(Exception e)
         {
@@ -262,7 +289,8 @@ public class UserController {
 
             String forgotPasswordLink = RandomStringUtils.randomAlphanumeric(128);
 
-            PayAccessResponse tokenResponse = userService.updateUserForgotPasswordLink(forgotPasswordRequest.getEmailAddress(), forgotPasswordRequest.getForgotPasswordEndpoint(), forgotPasswordLink);
+            String verifyUrl = "http://"+localhostDomainEndpoint+":"+serverPort+"/"+localhostDomainEndpointPath+"/api/v1/auth/update-forgot-password/"+ user.getEmailAddress()+"/" + forgotPasswordLink;
+            PayAccessResponse tokenResponse = userService.updateUserForgotPasswordLink(forgotPasswordRequest.getEmailAddress(), verifyUrl, forgotPasswordLink);
 
             return tokenResponse;
 
@@ -316,6 +344,14 @@ public class UserController {
         User authenticatedUser = null;
         try {
             authenticatedUser = tokenService.getUserFromToken(request);
+
+            if(authenticatedUser==null)
+            {
+                PayAccessResponse payAccessResponse = new  PayAccessResponse();
+                payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+                payAccessResponse.setMessage("Authorization not granted. OTP expired");
+                return payAccessResponse;
+            }
             String password = updatePasswordRequest.getPassword();
             String newPassword = updatePasswordRequest.getNewPassword();
             PayAccessResponse payAccessResponse = userService.updateUserPassword(password, newPassword, authenticatedUser);

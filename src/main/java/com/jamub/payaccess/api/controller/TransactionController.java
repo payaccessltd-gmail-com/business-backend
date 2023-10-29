@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.controller;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.models.Merchant;
 import com.jamub.payaccess.api.models.Terminal;
 import com.jamub.payaccess.api.models.Transaction;
@@ -47,6 +48,15 @@ public class TransactionController {
                                              HttpServletRequest request,
                                              HttpServletResponse response) throws JsonProcessingException {
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         PayAccessResponse payAccessResponse = transactionService.getTransactions(transactionFilterRequest);
 
         return payAccessResponse;

@@ -65,9 +65,10 @@ public class SupportController {
         }
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
-        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
-        payAccessResponse.setMessage("Your request was not successfully sent");
+        payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
+
 
     }
 
@@ -80,6 +81,14 @@ public class SupportController {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
 
         PayAccessResponse payAccessResponse = merchantService.createFeedbackMessage(createFeedbackRequest.getEmailAddress(),
                 createFeedbackRequest.getTitle(),

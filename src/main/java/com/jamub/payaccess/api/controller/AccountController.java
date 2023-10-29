@@ -80,7 +80,7 @@ public class AccountController {
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-        payAccessResponse.setMessage("Authorization failed");
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
     }
 
@@ -118,11 +118,10 @@ public class AccountController {
             return payAccessResponse;
         }
 
-
-
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-        payAccessResponse.setMessage("Authorization failed");
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
+
     }
 }

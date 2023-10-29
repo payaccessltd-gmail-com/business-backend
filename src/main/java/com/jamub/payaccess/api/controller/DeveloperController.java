@@ -75,7 +75,7 @@ public class DeveloperController {
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-        payAccessResponse.setMessage("Authorization failed");
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
 
     }
@@ -111,7 +111,7 @@ public class DeveloperController {
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-        payAccessResponse.setMessage("Authorization failed");
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
 
     }
@@ -134,7 +134,7 @@ public class DeveloperController {
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-        payAccessResponse.setMessage("Authorization failed");
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
     }
 

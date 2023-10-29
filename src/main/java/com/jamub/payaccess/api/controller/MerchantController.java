@@ -56,6 +56,15 @@ public class MerchantController {
         User authenticatedUser = null;
         try {
             authenticatedUser = tokenService.getUserFromToken(request);
+
+
+            if(authenticatedUser==null)
+            {
+                PayAccessResponse payAccessResponse = new  PayAccessResponse();
+                payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+                payAccessResponse.setMessage("Authorization not granted. OTP expired");
+                return payAccessResponse;
+            }
         }
         catch(Exception e)
         {
@@ -77,13 +86,27 @@ public class MerchantController {
         User authenticatedUser = null;
         try {
             authenticatedUser = tokenService.getUserFromToken(request);
+
+
+            if(authenticatedUser==null)
+            {
+                PayAccessResponse payAccessResponse = new  PayAccessResponse();
+                payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+                payAccessResponse.setMessage("Authorization not granted. OTP expired");
+                return payAccessResponse;
+            }
+
+            PayAccessResponse payAccessResponse = merchantService.updateMerchantAboutBusiness(merchantSignUpRequest, authenticatedUser);
+
+            return payAccessResponse;
         }
         catch(Exception e)
         {
-
+            e.printStackTrace();
         }
-        PayAccessResponse payAccessResponse = merchantService.updateMerchantAboutBusiness(merchantSignUpRequest, authenticatedUser);
-
+        PayAccessResponse payAccessResponse = new  PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode. GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Update was not successful");
         return payAccessResponse;
     }
 
@@ -141,16 +164,17 @@ public class MerchantController {
             }
 
             PayAccessResponse payAccessResponse = new  PayAccessResponse();
-            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-            payAccessResponse.setMessage("Authorization failed");
+            payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+            payAccessResponse.setMessage("Merchant bio-data update was not successful");
             return payAccessResponse;
         }
 
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-        payAccessResponse.setMessage("Authorization failed");
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
+
     }
 
 
@@ -200,14 +224,15 @@ public class MerchantController {
 
             PayAccessResponse payAccessResponse = new  PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-            payAccessResponse.setMessage("Authorization failed");
+            payAccessResponse.setMessage("Merchant Business Data update failed");
             return payAccessResponse;
         }
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-        payAccessResponse.setMessage("Authorization failed");
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
+
 
     }
 
@@ -227,8 +252,9 @@ public class MerchantController {
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-        payAccessResponse.setMessage("Authorization failed");
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
+
 
     }
 

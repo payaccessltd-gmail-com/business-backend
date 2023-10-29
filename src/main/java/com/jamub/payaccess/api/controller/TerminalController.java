@@ -59,6 +59,14 @@ public class TerminalController {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         PayAccessResponse payAccessResponse = terminalRequestService.createTerminalRequest(terminalOrderRequest, authenticatedUser);
@@ -79,6 +87,15 @@ public class TerminalController {
                                                  HttpServletResponse response) throws JsonProcessingException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         TerminalRequest terminalRequest = terminalRequestService.getTerminalRequest(terminalRequestId, null);
 
         if(terminalRequest!=null && terminalRequest.getTerminalRequestStatus().equals(TerminalRequestStatus.PENDING))
@@ -127,6 +144,15 @@ public class TerminalController {
                                              HttpServletResponse response) throws JsonProcessingException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         TerminalRequest terminalRequest = terminalRequestService.getTerminalRequest(terminalRequestId, null);
 
         if(terminalRequest!=null && terminalRequest.getCreatedByUserId().equals(authenticatedUser.getId()))
@@ -159,6 +185,15 @@ public class TerminalController {
                                            HttpServletResponse response) throws JsonProcessingException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         List<TerminalRequest> terminalRequestList = terminalRequestService.getTerminalRequestsByFilter(terminalRequestSearchFilterRequest, authenticatedUser);
 
         if(terminalRequestList!=null) {
@@ -189,6 +224,15 @@ public class TerminalController {
         System.out.println("terminalRequestId..." + terminalRequestId);
 
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         TerminalRequest terminalRequest = terminalRequestService.getTerminalRequest(terminalRequestId, null);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setResponseObject(terminalRequest);
@@ -210,6 +254,14 @@ public class TerminalController {
                                          HttpServletResponse response) throws JsonProcessingException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         PayAccessResponse payAccessResponse = terminalRequestService.getTerminalRequests(pageNumber, defaultPageSize);
 
 
@@ -223,6 +275,14 @@ public class TerminalController {
                                          HttpServletResponse response) throws JsonProcessingException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         PayAccessResponse payAccessResponse = terminalService.getTerminals(pageNumber, defaultPageSize);
 
 

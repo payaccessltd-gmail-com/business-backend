@@ -372,7 +372,7 @@ public class UserService {
                 msg.setRecipients(Message.RecipientType.TO, addrs);
 
                 msg.setSubject("Hello");
-                msg.setText("Copy the url and paste in your browser to activate your account - "+forgotPasswordEndpoint+"/payaccess/api/v1/auth/update-forgot-password/"+emailAddress+"/"+forgotPasswordLink);
+                msg.setText("Copy the url and paste in your browser to activate your account - "+forgotPasswordEndpoint);
 
                 msg.setSentDate(new Date());
 
@@ -393,6 +393,7 @@ public class UserService {
 
             PayAccessResponse tokenResponse = new PayAccessResponse();
             tokenResponse.setStatusCode("00");
+            tokenResponse.setResponseObject(forgotPasswordLink);
             tokenResponse.setMessage("An email containing a link to recover your password has been sent to you");
             return tokenResponse;
         }

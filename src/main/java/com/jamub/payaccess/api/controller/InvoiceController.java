@@ -99,8 +99,8 @@ public class InvoiceController {
         }
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
-        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
-        payAccessResponse.setMessage("New invoice not created successfully");
+        payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
 
     }
@@ -115,6 +115,14 @@ public class InvoiceController {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
 
         PayAccessResponse payAccessResponse = invoiceService.createStandardInvoice(standardInvoiceRequest, authenticatedUser);
 
@@ -150,9 +158,10 @@ public class InvoiceController {
 
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
-        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
-        payAccessResponse.setMessage("Invoice update was not successful");
+        payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
+
 
     }
 
@@ -182,9 +191,10 @@ public class InvoiceController {
 
 
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
-        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
-        payAccessResponse.setMessage("Invoice deletion was not successful");
+        payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
+
 
     }
 
@@ -206,11 +216,11 @@ public class InvoiceController {
             return payAccessResponse;
         }
 
-
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
-        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
-        payAccessResponse.setMessage("Invoices filtered were not successfully");
+        payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+        payAccessResponse.setMessage("Authorization not granted. OTP expired");
         return payAccessResponse;
+
 
     }
 
@@ -227,6 +237,15 @@ public class InvoiceController {
         System.out.println("invoiceId..." + invoiceId);
 
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         Invoice invoice = invoiceService.getInvoice(invoiceId, merchantId);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setResponseObject(invoice);
@@ -248,6 +267,15 @@ public class InvoiceController {
                                          HttpServletResponse response) throws JsonProcessingException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         PayAccessResponse payAccessResponse = invoiceService.getInvoices(pageNumber, defaultPageSize);
 
 
@@ -267,6 +295,15 @@ public class InvoiceController {
         System.out.println("invoiceId..." + invoiceId);
 
         User authenticatedUser = tokenService.getUserFromToken(request);
+
+
+        if(authenticatedUser==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+            payAccessResponse.setMessage("Authorization not granted. OTP expired");
+            return payAccessResponse;
+        }
         List<InvoiceBreakdown> invoiceBreakdownList = invoiceService.getInvoiceBreakdownByInvoiceId(invoiceId, merchantId);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setResponseObject(invoiceBreakdownList);
