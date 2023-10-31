@@ -293,6 +293,16 @@ public class MerchantService {
         return payAccessResponse;
     }
 
+    public PayAccessResponse updateMerchantCountry(MerchantSignUpRequest merchantSignUpRequest,
+                                                         User authenticatedUser) {
+        merchantDao.updateMerchantCountry(merchantSignUpRequest, authenticatedUser);
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+        payAccessResponse.setMessage("Merchant's country was updated successfully");
+        return payAccessResponse;
+    }
+
 
     public PayAccessResponse updateMerchantTransactionFeePayer(Boolean merchantMustPayTransactionFee, Long merchantId, User authenticatedUser) {
         MerchantSetting merchantSetting = merchantDao.updateMerchantTransactionFeePayer(merchantMustPayTransactionFee, merchantId, authenticatedUser);

@@ -9,4 +9,5 @@ public class UpdateForgotPasswordRequest extends BaseRequest{
     private String confirmNewPassword;
     private String emailAddress;
     private String forgotPasswordLink;
+    private String otp;
 }

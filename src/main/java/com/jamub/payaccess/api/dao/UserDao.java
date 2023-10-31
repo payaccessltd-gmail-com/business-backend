@@ -257,9 +257,11 @@ public class UserDao implements Dao<User>{
 
 
 
-    public User updateUserForgotPasswordLink(String emailAddress, String forgotPasswordLink) {
+    public User updateUserForgotPasswordLink(String emailAddress, String forgotPasswordLink, String otp, LocalDateTime otpExpiryDate) {
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("emailAddress", emailAddress)
+                .addValue("otp", otp)
+                .addValue("otpExpiryDate", otpExpiryDate)
                 .addValue("forgotPasswordLink", forgotPasswordLink);
         Map<String, Object> m = handleUpdateUserForgotPasswordLink.execute(in);
         List<User> result = (List<User>) m.get("#result-set-1");
@@ -268,10 +270,11 @@ public class UserDao implements Dao<User>{
     }
 
 
-    public User handleRecoverUserPassword(String emailAddress, String forgotPasswordLink, String newPassword) {
+    public User handleRecoverUserPassword(String emailAddress, String forgotPasswordLink, String newPassword, String otp) {
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("emailAddress", emailAddress)
                 .addValue("newPassword", newPassword)
+                .addValue("otp", otp)
                 .addValue("forgotPasswordLink", forgotPasswordLink);
         Map<String, Object> m = handleRecoverUserPassword.execute(in);
         List<User> result = (List<User>) m.get("#result-set-1");

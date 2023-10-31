@@ -351,9 +351,13 @@ public class UserService {
 //    }
 
 
-    public PayAccessResponse updateUserForgotPasswordLink(String emailAddress, String forgotPasswordEndpoint, String forgotPasswordLink)
+    public PayAccessResponse updateUserForgotPasswordLink(String emailAddress, String forgotPasswordEndpoint, String forgotPasswordLink, Long otpExpiryPeriod)
     {
-        User user = userDao.updateUserForgotPasswordLink(emailAddress, forgotPasswordLink);
+
+
+        LocalDateTime otpExpiryDate = LocalDateTime.now().plusSeconds(otpExpiryPeriod);
+        String otp = RandomStringUtils.randomNumeric(6);
+        User user = userDao.updateUserForgotPasswordLink(emailAddress, forgotPasswordLink, otp, otpExpiryDate);
         if(user!=null)
         {
 
@@ -372,7 +376,7 @@ public class UserService {
                 msg.setRecipients(Message.RecipientType.TO, addrs);
 
                 msg.setSubject("Hello");
-                msg.setText("Copy the url and paste in your browser to activate your account - "+forgotPasswordEndpoint);
+                msg.setText("OTP to recover your password is - "+otp);
 
                 msg.setSentDate(new Date());
 
@@ -405,8 +409,8 @@ public class UserService {
     }
 
 
-    public PayAccessResponse forgotUserPassword(String emailAddress, String forgotPasswordLink, String newPassword) {
-        User user = userDao.handleRecoverUserPassword(emailAddress, forgotPasswordLink, newPassword);
+    public PayAccessResponse forgotUserPassword(String emailAddress, String forgotPasswordLink, String newPassword, String otp) {
+        User user = userDao.handleRecoverUserPassword(emailAddress, forgotPasswordLink, newPassword, otp);
         if(user!=null)
         {
 

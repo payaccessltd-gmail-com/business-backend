@@ -111,6 +111,39 @@ public class MerchantController {
     }
 
 
+    @CrossOrigin
+    @RequestMapping(value = "/update-merchant-country", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public PayAccessResponse updateMerchantCountry(@RequestBody MerchantSignUpRequest merchantSignUpRequest,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response) {
+        User authenticatedUser = null;
+        try {
+            authenticatedUser = tokenService.getUserFromToken(request);
+
+
+            if(authenticatedUser==null)
+            {
+                PayAccessResponse payAccessResponse = new  PayAccessResponse();
+                payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+                payAccessResponse.setMessage("Authorization not granted. OTP expired");
+                return payAccessResponse;
+            }
+
+            PayAccessResponse payAccessResponse = merchantService.updateMerchantCountry(merchantSignUpRequest, authenticatedUser);
+
+            return payAccessResponse;
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        PayAccessResponse payAccessResponse = new  PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode. GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Update was not successful");
+        return payAccessResponse;
+    }
+
+
 
     @CrossOrigin
     @RequestMapping(value = "/activate-account/{emailAddress}/{verificationLink}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)

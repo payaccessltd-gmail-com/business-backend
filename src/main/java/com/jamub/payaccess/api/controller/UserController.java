@@ -70,6 +70,40 @@ public class UserController {
     }
 
 
+    @CrossOrigin
+    @RequestMapping(value = "/get-user-details", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public PayAccessResponse getUserDetails(HttpServletRequest request,
+                                            HttpServletResponse response) {
+        User authenticatedUser = null;
+        try {
+            authenticatedUser = tokenService.getUserFromToken(request);
+
+
+            if(authenticatedUser==null)
+            {
+                PayAccessResponse payAccessResponse = new  PayAccessResponse();
+                payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+                payAccessResponse.setMessage("Authorization not granted. OTP expired");
+                return payAccessResponse;
+            }
+
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setResponseObject(authenticatedUser);
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("User details fetched successfully");
+            return payAccessResponse;
+        }
+        catch(Exception e)
+        {
+
+        }
+        PayAccessResponse payAccessResponse = new  PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+        payAccessResponse.setMessage("User details could not be fetched");
+        return payAccessResponse;
+    }
+
+
 
     @CrossOrigin
     @RequestMapping(value = "/update-biodata", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -290,7 +324,7 @@ public class UserController {
             String forgotPasswordLink = RandomStringUtils.randomAlphanumeric(128);
 
             String verifyUrl = "http://"+localhostDomainEndpoint+":"+serverPort+"/"+localhostDomainEndpointPath+"/api/v1/auth/update-forgot-password/"+ user.getEmailAddress()+"/" + forgotPasswordLink;
-            PayAccessResponse tokenResponse = userService.updateUserForgotPasswordLink(forgotPasswordRequest.getEmailAddress(), verifyUrl, forgotPasswordLink);
+            PayAccessResponse tokenResponse = userService.updateUserForgotPasswordLink(forgotPasswordRequest.getEmailAddress(), verifyUrl, forgotPasswordLink, otpExpiryPeriod);
 
             return tokenResponse;
 
@@ -324,7 +358,7 @@ public class UserController {
             String password = updateForgotPasswordRequest.getNewPassword();
             password = BCrypt.hashpw(password, BCrypt.gensalt(12));
             PayAccessResponse payAccessResponse = userService.forgotUserPassword(updateForgotPasswordRequest.getEmailAddress(), updateForgotPasswordRequest.getForgotPasswordLink(),
-                    password);
+                    password, updateForgotPasswordRequest.getOtp());
 
             return payAccessResponse;
 

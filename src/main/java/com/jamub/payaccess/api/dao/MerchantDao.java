@@ -45,6 +45,8 @@ public class MerchantDao implements Dao<Merchant>{
     private SimpleJdbcCall handleApproveMerchant;
     private SimpleJdbcCall handleGetMerchants;
     private SimpleJdbcCall handleUpdateMerchantAboutBusiness;
+
+    private SimpleJdbcCall handleUpdateMerchantCountry;
     private SimpleJdbcCall handleUpdateMerchantTransactionFeePayer;
     private SimpleJdbcCall handleUpdateMerchantEarningsOption;
     private SimpleJdbcCall handleUpdateMerchantBusinessType;
@@ -155,6 +157,11 @@ public class MerchantDao implements Dao<Merchant>{
             .withProcedureName("UpdateMerchantAboutBusiness")
             .returningResultSet("#result-set-1",
                     MerchantRowMapper.newInstance(Merchant.class));
+
+        handleUpdateMerchantCountry = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("UpdateMerchantCountry")
+                .returningResultSet("#result-set-1",
+                        MerchantRowMapper.newInstance(Merchant.class));
 
 
         handleUpdateMerchantTransactionFeePayer = new SimpleJdbcCall(jdbcTemplate)
@@ -367,12 +374,21 @@ public class MerchantDao implements Dao<Merchant>{
                 .addValue("businessCategory", merchantSignUpRequest.getBusinessCategory())
                 .addValue("businessType", merchantSignUpRequest.getBusinessType())
                 .addValue("softwareDeveloper", merchantSignUpRequest.isSoftwareDeveloper())
-                .addValue("country", merchantSignUpRequest.getCountry())
+                //.addValue("country", merchantSignUpRequest.getCountry())
                 .addValue("mobileNumber", merchantSignUpRequest.getMobileNumber());
         Map<String, Object> m = handleUpdateMerchantAboutBusiness.execute(in);
         List<Merchant> result = (List<Merchant>) m.get("#result-set-1");
         Merchant merchant = result!=null && !result.isEmpty() ? result.get(0) : null;
         return merchant;
+    }
+
+
+    public void updateMerchantCountry(MerchantSignUpRequest merchantSignUpRequest,
+                                                User authenticatedUser) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("userId", authenticatedUser.getId())
+                .addValue("country", merchantSignUpRequest.getCountry());
+        handleUpdateMerchantCountry.execute(in);
     }
 
 
