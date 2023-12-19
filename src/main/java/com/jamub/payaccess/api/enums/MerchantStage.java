@@ -1,0 +1,5 @@
+package com.jamub.payaccess.api.enums;
+
+public enum MerchantStage {
+	MERCHANT_KYC, MERCHANT_ABOUT_BUSINESS, MERCHANT_BIO_DATA, MERCHANT_BUSINESS_DATA, MERCHANT_BUSINESS_ACCOUNT_DATA
+}

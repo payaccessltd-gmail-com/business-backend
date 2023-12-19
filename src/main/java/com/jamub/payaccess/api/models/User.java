@@ -46,8 +46,7 @@ public class User implements Serializable {
     @Column(nullable= true)
     private String primaryBusinessName;
 
-    @Enumerated(EnumType.STRING)
-    private Country country;
+    private String country;
 //
     @Column(nullable= true)
     private Boolean softwareDeveloper;
@@ -57,4 +56,6 @@ public class User implements Serializable {
     private String identificationDocumentPath;
     private Long primaryMerchantId;
     private Boolean twoFactorAuthForLogin;
+    @Enumerated(EnumType.STRING)
+    private UserRole userRole;
 }

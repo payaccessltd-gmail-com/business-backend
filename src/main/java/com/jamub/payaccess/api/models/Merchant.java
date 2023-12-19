@@ -52,8 +52,10 @@ public class Merchant  implements Serializable {
     private String businessState;
     @Column(nullable= false)
     private String businessWebsite;
-    @Column(nullable= false)
+    @Column(nullable= true)
     private String businessLogo;
+    @Column(nullable= true)
+    private String businessCertificateFile;
     @Column(nullable= false)
     private String businessBvn;
     @Column(nullable= false)
@@ -80,6 +82,40 @@ public class Merchant  implements Serializable {
     private String webhookUrl;
     @Column(nullable= false)
     private String callbackUrl;
+    @Column(nullable= true)
+    private String payAccessUsage;
 
+    @Column(nullable= true)
+    String governmentApprovedDocumentFileName;
+    @Column(nullable= true)
+    String directorsProofOfIdentityFileName;
+    @Column(nullable= true)
+    String businessOwnersDocumentFileName;
+    @Column(nullable= true)
+    String shareholdersDocumentFileName;
+
+    @Column(nullable = false)
+    LocalDateTime createdAt;
+    LocalDateTime deletedAt;
+    LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    Boolean kycSet;
+    @Column(nullable = false)
+    Boolean businessInfoSet;
+    @Column(nullable = false)
+    Boolean personalInfoSet;
+    @Column(nullable = false)
+    Boolean accountInfoSet;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
 }

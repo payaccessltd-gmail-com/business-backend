@@ -14,9 +14,12 @@ import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -49,27 +52,27 @@ public class TerminalService {
 
     }
 
-    public Terminal updateTerminalRequest(Terminal terminal)
+    public Terminal updateTerminal(Terminal terminal)
     {
         return terminalDao.update(terminal);
     }
 
-    public PayAccessResponse getTerminals(Integer pageNumber, Integer pageSize) {
+    public ResponseEntity getTerminals(Integer pageNumber, Integer pageSize) {
         if(pageNumber==null)
             pageNumber = 0;
 
-        List<Terminal> queryResponse = terminalDao.getAll(pageNumber, pageSize);
+        Map queryResponse = terminalDao.getAll(pageNumber, pageSize);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setResponseObject(queryResponse);
         if(queryResponse!=null)
         {
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Terminals fetched successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
         payAccessResponse.setMessage("Terminal listing fetch failed");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
 
     }
 
@@ -80,7 +83,9 @@ public class TerminalService {
                 terminalSearchFilterRequest.getTerminalType(),
                 terminalSearchFilterRequest.getStartDate(),
                 terminalSearchFilterRequest.getEndDate(),
-                authenticatedUser.getId()
+                terminalSearchFilterRequest.getMerchantCode(),
+                terminalSearchFilterRequest.getPageNumber(),
+                terminalSearchFilterRequest.getPageSize()
         );
         return queryResponse;
     }

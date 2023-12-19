@@ -20,10 +20,7 @@ import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 @Repository
@@ -62,8 +59,11 @@ public class AccountDao  implements Dao<Account>{
     }
 
     @Override
-    public List<Account> getAll() {
-        return null;
+    public Map getAll() {
+        Map returnList = new HashMap();
+        returnList.put("list", new ArrayList<Account>());
+        returnList.put("totalCount", 100);
+        return returnList;
     }
 
     @Override

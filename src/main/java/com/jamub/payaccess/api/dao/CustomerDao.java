@@ -14,12 +14,16 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,7 +51,15 @@ public class CustomerDao implements Dao<Customer>{
         getCustomers = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("GetCustomers")
                 .returningResultSet("#result-set-1",
-                        MerchantRowMapper.newInstance(Customer.class));
+                        MerchantRowMapper.newInstance(Customer.class))
+                .returningResultSet("#result-set-2", new BeanPropertyRowMapper<Integer>()
+                {
+                    @Override
+                    public Integer mapRow(ResultSet rs, int rowNum) throws SQLException
+                    {
+                        return rs.getInt("count");
+                    }
+                });
         handleUpdateCustomerBioData = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("UpdateCustomerBioData")
                 .returningResultSet("#result-set-1",
@@ -64,12 +76,15 @@ public class CustomerDao implements Dao<Customer>{
     }
 
     @Override
-    public List<Customer> getAll() {
+    public Map getAll() {
         MapSqlParameterSource in = new MapSqlParameterSource();
         Map<String, Object> m = getCustomers.execute(in);
 
         List<Customer> result = (List<Customer>) m.get("#result-set-1");
-        return result;
+        Map returnList = new HashMap();
+        returnList.put("list", result);
+        returnList.put("totalCount", 100);
+        return returnList;
     }
 
     @Override
@@ -124,7 +139,7 @@ public class CustomerDao implements Dao<Customer>{
                 .addValue("lastName", customerBioDataUpdateRequest.getLastName())
                 .addValue("gender", customerBioDataUpdateRequest.getGender())
                 .addValue("dateOfBirth", customerBioDataUpdateRequest.getDateOfBirth())
-                .addValue("country", customerBioDataUpdateRequest.getCountry())
+                .addValue("country", customerBioDataUpdateRequest.getCountry().toUpperCase())
                 .addValue("state", customerBioDataUpdateRequest.getState())
                 .addValue("city", customerBioDataUpdateRequest.getCity())
                 .addValue("address", customerBioDataUpdateRequest.getAddress());

@@ -14,7 +14,7 @@ import javax.persistence.Enumerated;
 public class UserDTO {
 
     @Enumerated(EnumType.STRING)
-    private Country country;
+    private String country;
     private String firstName;
     private String lastName;
     private String emailAddress;

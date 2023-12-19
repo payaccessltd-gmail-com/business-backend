@@ -1,5 +1,12 @@
 package com.jamub.payaccess.api.dao.util;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.jamub.payaccess.api.enums.BusinessCategory;
+import com.jamub.payaccess.api.enums.QRDataType;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.mindrot.jbcrypt.BCrypt;
@@ -8,19 +15,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.Cipher;
+import javax.imageio.ImageIO;
+import javax.xml.bind.DatatypeConverter;
+import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.*;
 import java.security.spec.RSAPublicKeySpec;
-import java.util.Base64;
+import java.util.*;
 
 public class UtilityHelper {
 
     private final static Logger logger = LoggerFactory.getLogger(UtilityHelper.class);
+    private static final List<String> contentTypes = Arrays.asList("image/png", "image/jpeg", "image/gif");
+
     public static String generateBCryptPassword(String password)
     {
         String generatedSecuredPasswordHash = BCrypt.hashpw(password, BCrypt.gensalt(12));
@@ -67,4 +83,91 @@ public class UtilityHelper {
         return authData;
     }
 
+
+    public static boolean checkIfImage(MultipartFile file)
+    {
+        String fileContentType = file.getContentType();
+        if(contentTypes.contains(fileContentType)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean checkValidEnumValue(String enumName, Class class_) {
+        Object[] objectArray = class_.getEnumConstants();
+        String[] stringArray = Arrays.copyOf(objectArray, objectArray.length, String[].class);
+        List arrayList = Arrays.asList(stringArray);
+
+        if(!arrayList.contains(enumName))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static ArrayList<String> getCountryList() {
+        String[] isoCountries = Locale.getISOCountries();
+        ArrayList<String> countryList = new ArrayList<String>();
+        for(String isoCountry : isoCountries)
+        {
+            Locale obj = new Locale("", isoCountry);
+            countryList.add(obj.getDisplayCountry().toUpperCase());
+        }
+
+        countryList.sort(String::compareToIgnoreCase);
+
+        return countryList;
+    }
+
+    public static String generateInvoiceQRCode(String referenceNumber, String merchantName, String merchantCode, BigDecimal amount, String url,
+                                             String qrFileLocation) throws NoSuchAlgorithmException, WriterException, IOException {
+        String qrTrackingNumber = referenceNumber;
+        Map qrData = new HashMap();
+        qrData.put("qrTrackingNumber", qrTrackingNumber);
+        qrData.put("qrType", QRDataType.INVOICE.name());
+        qrData.put("qrMerchantName", merchantName);
+        qrData.put("qrMerchantCode", merchantCode);
+        qrData.put("qrAmount", amount);
+        qrData.put("qrUrl", url);
+        String qrDataString = qrData.toString();
+
+        String imageString = qrDataString;
+
+        // create a buffered image
+        byte[] data = DatatypeConverter.parseBase64Binary(imageString);
+        String fileName = qrTrackingNumber + ".png";
+        String path = qrFileLocation + File.separator + fileName;
+        System.out.println("Path......");
+        System.out.println(path);
+
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[16];
+        random.nextBytes(salt);
+        String encData = UtilityHelper.get_SHA_512_SecurePassword(qrDataString, salt);
+
+        QRCodeWriter barcodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = barcodeWriter.encode(encData, BarcodeFormat.QR_CODE, 200, 200);
+
+        BufferedImage bi = MatrixToImageWriter.toBufferedImage(bitMatrix);
+        System.out.println(bi.getData());
+        File outputfile = new File(path);
+
+        ImageIO.write(bi, "PNG", outputfile);
+
+//        Set<PosixFilePermission> crunchifyPermissions = new HashSet<PosixFilePermission>();
+//        crunchifyPermissions.add(PosixFilePermission.OWNER_READ);
+//        crunchifyPermissions.add(PosixFilePermission.OWNER_WRITE);
+//        crunchifyPermissions.add(PosixFilePermission.OWNER_EXECUTE);
+//        crunchifyPermissions.add(PosixFilePermission.GROUP_READ);
+//        crunchifyPermissions.add(PosixFilePermission.GROUP_EXECUTE);
+//        crunchifyPermissions.add(PosixFilePermission.OTHERS_READ);
+//        crunchifyPermissions.add(PosixFilePermission.OTHERS_EXECUTE);
+
+//        Files.setPosixFilePermissions(Paths.get(path), crunchifyPermissions);
+
+
+        return fileName;
+    }
 }

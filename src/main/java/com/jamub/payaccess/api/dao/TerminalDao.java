@@ -7,17 +7,22 @@ import com.jamub.payaccess.api.models.TerminalRequest;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.CreateTerminalRequest;
 import com.jamub.payaccess.api.models.request.TerminalOrderRequest;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,7 +53,15 @@ public class TerminalDao implements Dao<Terminal>{
         getAllTerminals = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("GetAllTerminals")
                 .returningResultSet("#result-set-1",
-                        MerchantRowMapper.newInstance(Terminal.class));
+                        MerchantRowMapper.newInstance(Terminal.class))
+                .returningResultSet("#result-set-2", new BeanPropertyRowMapper<Integer>()
+                {
+                    @Override
+                    public Integer mapRow(ResultSet rs, int rowNum) throws SQLException
+                    {
+                        return rs.getInt("count");
+                    }
+                });
 
         getTerminalsByFilter = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("FilterTerminals")
@@ -102,12 +115,16 @@ public class TerminalDao implements Dao<Terminal>{
     }
 
     @Override
-    public List<Terminal> getAll() {
+    public Map getAll() {
         MapSqlParameterSource in = new MapSqlParameterSource();
         Map<String, Object> m = getAllTerminals.execute(in);
 
         List<Terminal> result = (List<Terminal>) m.get("#result-set-1");
-        return result;
+        List<Integer> resultInt = (List<Integer>) m.get("#result-set-2");
+        Map returnList = new HashMap();
+        returnList.put("list", result);
+        returnList.put("totalCount", resultInt.get(0));
+        return returnList;
     }
 
 
@@ -133,6 +150,7 @@ public class TerminalDao implements Dao<Terminal>{
                 .addValue("terminalBrand", createTerminalRequest.getTerminalBrand())
                 .addValue("terminalRequestId", createTerminalRequest.getTerminalRequestId())
                 .addValue("acquirerId", createTerminalRequest.getAcquirerId())
+                .addValue("terminalKey", RandomStringUtils.randomAlphanumeric(16).toString().toUpperCase())
                 .addValue("terminalStatus", TerminalStatus.ACTIVE.name());
         Map<String, Object> m = saveTerminal.execute(in);
         List<Terminal> result = (List<Terminal>) m.get("#result-set-1");
@@ -140,24 +158,31 @@ public class TerminalDao implements Dao<Terminal>{
         return terminal;
     }
 
-    public List<Terminal> getAll(int pageNumber, int maxSize) {
+    public Map getAll(int pageNumber, int maxSize) {
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("pageNumber", pageNumber*maxSize, Types.INTEGER)
                 .addValue("pageSize", maxSize, Types.INTEGER);
         Map<String, Object> m = getAllTerminals.execute(in);
 
         List<Terminal> result = (List<Terminal>) m.get("#result-set-1");
-        return result;
+        Integer totalCount = (Integer) m.get("#result-set-2");
+        Map returnList = new HashMap();
+        returnList.put("list", result);
+        returnList.put("totalCount", totalCount);
+        return returnList;
     }
 
-    public List<Terminal> getTerminalsByFilter(String terminalStatus, String terminalBrand, String terminalType, LocalDate startDate, LocalDate endDate, Long merchantId) {
+    public List<Terminal> getTerminalsByFilter(String terminalStatus, String terminalBrand, String terminalType, String startDate,
+                                               String endDate, String merchantCode, int pageNumber, int pageSize) {
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("terminalStatus", terminalStatus)
                 .addValue("terminalBrand", terminalBrand)
                 .addValue("terminalType", terminalType)
                 .addValue("startDate", startDate)
                 .addValue("endDate", endDate)
-                .addValue("merchantId", merchantId);
+                .addValue("merchantCode", merchantCode)
+                .addValue("pageSize", pageSize)
+                .addValue("pageNumber", pageNumber);
         Map<String, Object> m = getTerminalsByFilter.execute(in);
 
         List<Terminal> result = (List<Terminal>) m.get("#result-set-1");

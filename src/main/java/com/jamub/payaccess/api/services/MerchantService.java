@@ -4,23 +4,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jamub.payaccess.api.dao.MerchantDao;
 import com.jamub.payaccess.api.dao.UserDao;
+import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.dto.MerchantDTO;
 import com.jamub.payaccess.api.dto.UserDTO;
-import com.jamub.payaccess.api.enums.APIMode;
-import com.jamub.payaccess.api.enums.PayAccessStatusCode;
-import com.jamub.payaccess.api.enums.Urgency;
-import com.jamub.payaccess.api.models.Merchant;
-import com.jamub.payaccess.api.models.MerchantCredential;
-import com.jamub.payaccess.api.models.MerchantSetting;
+import com.jamub.payaccess.api.enums.*;
+import com.jamub.payaccess.api.models.*;
 import com.jamub.payaccess.api.models.request.*;
-import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.sun.mail.smtp.SMTPTransport;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import javax.mail.Authenticator;
@@ -36,6 +35,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -52,7 +52,7 @@ public class MerchantService {
         this.userDao = userDao;
     }
 
-    public List<Merchant> getAllMerchants(){
+    public Map getAllMerchants(){
         return merchantDao.getAll();
     }
 
@@ -69,7 +69,7 @@ public class MerchantService {
         return null;
     }
 
-//    public PayAccessResponse createNewMerchant(MerchantSignUpRequest merchantSignUpRequest) {
+//    public ResponseEntity createNewMerchant(MerchantSignUpRequest merchantSignUpRequest) {
 //        System.out.println(merchantSignUpRequest.getEmailAddress());
 //        List<User> existingMerchantUsers = userDao.getUserByEmailAddress(merchantSignUpRequest.getEmailAddress());
 //        logger.info("{}", existingMerchantUsers);
@@ -78,7 +78,7 @@ public class MerchantService {
 //            PayAccessResponse payAccessResponse = new PayAccessResponse();
 //            payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
 //            payAccessResponse.setMessage("Merchant sign up was not successful. A merchant with the email address already is already signed up");
-//            return payAccessResponse;
+//            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
 //        }
 //
 //        merchantSignUpRequest.setVerificationLink(RandomStringUtils.randomAlphanumeric(128));
@@ -126,7 +126,7 @@ public class MerchantService {
 //            }
 //
 //
-//            return payAccessResponse;
+//            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
 //        }
 //
 //        PayAccessResponse payAccessResponse = new PayAccessResponse();
@@ -141,10 +141,10 @@ public class MerchantService {
 //
 //
 //
-//        return payAccessResponse;
+//        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
 //    }
 
-    public PayAccessResponse activateAccount(String emailAddress, String verificationLink) throws JsonProcessingException {
+    public ResponseEntity activateAccount(String emailAddress, String verificationLink) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
@@ -160,7 +160,7 @@ public class MerchantService {
         {
             payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
             payAccessResponse.setMessage("Merchant profile activation was not successful. Please try again");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
         }
         payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
         payAccessResponse.setMessage("Merchant profile has been activated successfully");
@@ -172,10 +172,10 @@ public class MerchantService {
         arrayList.add(merchantDto);
         arrayList.add(userDto);
         payAccessResponse.setResponseObject(arrayList);
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateMerchantBioData(MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest, User authenticatedUser) {
+    public ResponseEntity updateMerchantBioData(MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest, User authenticatedUser) {
 
         Merchant merchant = merchantDao.updateMerchantBioData(merchantUserBioDataUpdateRequest, authenticatedUser);
         if(merchant!=null)
@@ -183,16 +183,16 @@ public class MerchantService {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Merchant Bio-Data updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Merchant Bio-Data update was not successful. Please try again");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateMerchantBusinessData(MerchantBusinessDataUpdateRequest merchantBusinessDataUpdateRequest, Long merchantId, User authenticatedUser) {
+    public ResponseEntity updateMerchantBusinessData(MerchantBusinessDataUpdateRequest merchantBusinessDataUpdateRequest, Long merchantId, User authenticatedUser) {
         Merchant merchant = merchantDao.updateMerchantBusinessData(merchantBusinessDataUpdateRequest, merchantId, authenticatedUser);
         if(merchant!=null)
         {
@@ -200,16 +200,16 @@ public class MerchantService {
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setResponseObject(merchant);
             payAccessResponse.setMessage("Merchant Business data updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Merchant Business data update was not successful. Please try again");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateMerchantBusinessBankAccountData(MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest,
+    public ResponseEntity updateMerchantBusinessBankAccountData(MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest,
                                                                    User authenticatedUser) {
         Merchant merchant = merchantDao.updateMerchantBusinessBankAccountData(merchantBusinessBankAccountDataUpdateRequest, authenticatedUser);
         if(merchant!=null)
@@ -217,13 +217,13 @@ public class MerchantService {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Merchant bank account details updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Merchant  bank account details update was not successful. Please try again");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
     }
 
 
@@ -235,12 +235,12 @@ public class MerchantService {
 //        payAccessResponse.setResponseObject(queryResponse);
 //        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
 //        payAccessResponse.setMessage("Merchant details fetched successfully");
-//        return payAccessResponse;
+//        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
 //        return null;
     }
 
 
-    public PayAccessResponse approveMerchant(String merchantCode)
+    public ResponseEntity approveMerchant(String merchantCode)
     {
         Merchant queryResponse = merchantDao.approveMerchant(merchantCode);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
@@ -249,62 +249,190 @@ public class MerchantService {
         {
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Merchant approved successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
         payAccessResponse.setMessage("Merchant approval failed. Invalid merchant code provided");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
 //        return null;
     }
 
-    public PayAccessResponse getMerchants(Integer pageNumber, Integer pageSize) {
+
+
+    public ResponseEntity disapproveMerchant(String merchantCode)
+    {
+        Merchant queryResponse = merchantDao.disapproveMerchant(merchantCode);
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setResponseObject(queryResponse);
+        if(queryResponse!=null)
+        {
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Merchant disapproved successfully");
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+        }
+        payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
+        payAccessResponse.setMessage("Merchant disapproval failed. Invalid merchant code provided");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+//        return null;
+    }
+
+    public Merchant handleReviewMerchantStatus(MerchantReviewUpdateStatusRequest merchantReviewUpdateStatusRequest, User authenticatedUser)
+    {
+        Merchant queryResponse = null;
+        switch(MerchantReviewStatus.valueOf(merchantReviewUpdateStatusRequest.getMerchantReviewStatus()))
+        {
+            case REJECTED:
+                queryResponse = merchantDao.handleReviewMerchant(merchantReviewUpdateStatusRequest, authenticatedUser);
+                break;
+            case REQUEST_UPDATE:
+                queryResponse = merchantDao.handleReviewMerchant(merchantReviewUpdateStatusRequest, authenticatedUser);
+                break;
+            case APPROVED:
+                queryResponse = merchantDao.handleReviewMerchant(merchantReviewUpdateStatusRequest, authenticatedUser);
+                break;
+        }
+
+        return queryResponse;
+//        return null;
+    }
+
+
+
+    public Merchant updateMerchantStatus(MerchantStatusUpdateRequest merchantStatusUpdateRequest, User authenticatedUser)
+    {
+        Merchant merchant = null;
+
+
+
+        List merchantList = merchantDao.updateMerchantStatus(merchantStatusUpdateRequest.getMerchantCode(),
+                merchantStatusUpdateRequest.getMerchantStatus(),
+                authenticatedUser);
+
+        if(merchantList!=null && !merchantList.isEmpty())
+        {
+            switch(MerchantStatus.valueOf(merchantStatusUpdateRequest.getMerchantStatus()))
+            {
+                case REJECTED:
+                    //Email Merchant rejection email
+                    break;
+                case FORWARDED_FOR_REVIEW:
+                    //Email Admin email for review of merchant
+                    break;
+                case APPROVED:
+                    //Email Merchant approval email
+                    break;
+            }
+
+
+
+            return merchant;
+        }
+        return null;
+    }
+
+
+
+
+    public ResponseEntity getMerchants(Integer pageNumber, Integer pageSize, GetMerchantFilterRequest getMerchantFilterRequest) {
         if(pageNumber==null)
             pageNumber = 0;
 
-        List<Merchant> queryResponse = merchantDao.getMerchants(pageNumber, pageSize);
+        List<Merchant> queryResponse = merchantDao.getMerchants(pageNumber, pageSize, getMerchantFilterRequest);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setResponseObject(queryResponse);
         if(queryResponse!=null)
         {
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Merchants fetched successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
-        payAccessResponse.setMessage("Merchant fetch failed");
-        return payAccessResponse;
+        payAccessResponse.setMessage("Merchant listing failed");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
 
     }
 
-    public PayAccessResponse updateMerchantAboutBusiness(MerchantSignUpRequest merchantSignUpRequest,
+
+    public ResponseEntity getMerchantApproval(String merchantCode) {
+        List<MerchantApproval> queryResponse = merchantDao.getMerchantApproval(merchantCode);
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setResponseObject(queryResponse);
+        if(queryResponse!=null)
+        {
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Merchants approvals fetched successfully");
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+        }
+        payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
+        payAccessResponse.setMessage("Merchant approvals fetch failed");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+
+    }
+
+    public ResponseEntity updateMerchantAboutBusiness(MerchantSignUpRequest merchantSignUpRequest,
                                                          User authenticatedUser) {
+
+
+        Optional<Merchant> merchantCheckOptional = merchantDao.get(merchantSignUpRequest.getMerchantId());
+        if(!merchantCheckOptional.isPresent())
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
+            payAccessResponse.setMessage("Invalid merchant details provided");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
+        }
+
+        Merchant merchantCheck = merchantCheckOptional.get();
+
+//        logger.info("{}...{}", merchantCheck.getBusinessType(), merchantCheck.getBusinessType().name());
+        if(merchantCheck.getBusinessType()!=null
+                && merchantCheck.getBusinessType().name().equals(merchantSignUpRequest.getBusinessType()))
+        {
+
+        }
+        else {
+
+            if(merchantCheck.getBusinessType()!=null)
+            {
+                PayAccessResponse payAccessResponse = new PayAccessResponse();
+                payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+                payAccessResponse.setMessage("Authorization not granted to change the Business type. To do this, kindly contact the administrators");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(payAccessResponse);
+            }
+
+        }
+
+
         Merchant merchant = merchantDao.updateMerchantAboutBusiness(merchantSignUpRequest, authenticatedUser);
+
         if(merchant!=null)
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Merchant's details about their business updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
-        payAccessResponse.setMessage("Merchant's details about their business was not updated successful. Please try again");
-        return payAccessResponse;
+        payAccessResponse.setMessage("Merchant's details about their business was not updated successful. Invalid request");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateMerchantCountry(MerchantSignUpRequest merchantSignUpRequest,
+    public ResponseEntity updateMerchantCountry(UpdateMerchantCountryRequest updateMerchantCountryRequest,
                                                          User authenticatedUser) {
-        merchantDao.updateMerchantCountry(merchantSignUpRequest, authenticatedUser);
+
+
+        merchantDao.updateMerchantCountry(updateMerchantCountryRequest, authenticatedUser);
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
         payAccessResponse.setMessage("Merchant's country was updated successfully");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
     }
 
 
-    public PayAccessResponse updateMerchantTransactionFeePayer(Boolean merchantMustPayTransactionFee, Long merchantId, User authenticatedUser) {
+    public ResponseEntity updateMerchantTransactionFeePayer(Boolean merchantMustPayTransactionFee, Long merchantId, User authenticatedUser) {
         MerchantSetting merchantSetting = merchantDao.updateMerchantTransactionFeePayer(merchantMustPayTransactionFee, merchantId, authenticatedUser);
         if(merchantSetting!=null)
         {
@@ -312,16 +440,16 @@ public class MerchantService {
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setResponseObject(merchantSetting);
             payAccessResponse.setMessage("Transaction fee payer has been updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Transaction fee payer could not be updated successfully. Please try again");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateMerchantReceiveEarnings(String receiveEarningsOption, Long merchantId, User authenticatedUser) {
+    public ResponseEntity updateMerchantReceiveEarnings(String receiveEarningsOption, Long merchantId, User authenticatedUser) {
         Merchant merchant = merchantDao.updateMerchantReceiveEarnings(receiveEarningsOption, merchantId, authenticatedUser);
         if(merchant!=null)
         {
@@ -329,16 +457,16 @@ public class MerchantService {
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setResponseObject(merchant);
             payAccessResponse.setMessage("Merchants preference to receive earnings has been updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Merchants preference to receive earnings could not be updated successfully. Please try again");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateMerchantBusinessType(String businessType, Long merchantIdL, User authenticatedUser) {
+    public ResponseEntity updateMerchantBusinessType(String businessType, Long merchantIdL, User authenticatedUser) {
         Merchant merchant = merchantDao.updateMerchantBusinessType(businessType, merchantIdL, authenticatedUser);
         if(merchant!=null)
         {
@@ -346,88 +474,89 @@ public class MerchantService {
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setResponseObject(merchant);
             payAccessResponse.setMessage("Merchants business type updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Merchants business type not be updated successfully. Please try again");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
-    public PayAccessResponse createContactUsMessage(String emailAddress, String subject, String productCategory, String description, Urgency urgency, String newFileName, User authenticatedUser) {
+    public ResponseEntity createContactUsMessage(String emailAddress, String subject, String productCategory, String description, String urgency, String newFileName, User authenticatedUser) {
         merchantDao.createContactUsMessage(emailAddress, subject, productCategory,
                 description, urgency, newFileName, authenticatedUser);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
         payAccessResponse.setMessage("Message created successfully");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
     }
 
-    public PayAccessResponse createFeedbackMessage(String emailAddress, String title, String productCategory, String description, Urgency urgency, User authenticatedUser) {
+    public ResponseEntity createFeedbackMessage(String emailAddress, String title, String productCategory, String description, String urgency, User authenticatedUser) {
         merchantDao.createFeedbackMessage(emailAddress, title, productCategory,
                 description, urgency, authenticatedUser);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
         payAccessResponse.setMessage("Feedback message created successfully");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateMerchantNotifications(NotificationSettingRequest notificationSettingRequest, User authenticatedUser) {
+    public ResponseEntity updateMerchantNotifications(NotificationSettingRequest notificationSettingRequest, User authenticatedUser) {
         MerchantSetting merchantSetting = merchantDao.updateMerchantNotifications(notificationSettingRequest, authenticatedUser);
         if(merchantSetting!=null) {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Settings updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Settings update was not successfully");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateMerchantSecurity(MerchantSecuritySettingRequest merchantSecuritySettingRequest, User authenticatedUser) {
+    public ResponseEntity updateMerchantSecurity(MerchantSecuritySettingRequest merchantSecuritySettingRequest, User authenticatedUser) {
         MerchantSetting merchantSetting = merchantDao.updateMerchantSecurity(merchantSecuritySettingRequest, authenticatedUser);
         if(merchantSetting!=null) {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Security Settings updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Security Settings update was not successfully");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateMerchantPaymentSetting(MerchantPaymentSettingRequest merchantPaymentSettingRequest, User authenticatedUser) {
+    public ResponseEntity updateMerchantPaymentSetting(MerchantPaymentSettingRequest merchantPaymentSettingRequest, User authenticatedUser) {
         MerchantSetting merchantSetting = merchantDao.updateMerchantPaymentSetting(merchantPaymentSettingRequest, authenticatedUser);
         if(merchantSetting!=null) {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Payment preference Settings updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Payment preference Settings update was not successfully");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
-    public PayAccessResponse getMerchantSettings(Long merchantId, User authenticatedUser) {
+    public ResponseEntity getMerchantSettings(Long merchantId, User authenticatedUser) {
+        logger.info("{}/...{}", merchantId, authenticatedUser.getId());
         MerchantSetting merchantSetting = merchantDao.getMerchantSettings(merchantId, authenticatedUser);
         if(merchantSetting!=null) {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setResponseObject(merchantSetting);
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Merchant Settings fetched successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Merchant Settings was not fetched successfully");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
     public Merchant generateNewMerchantKeys(APIMode apiMode, Long merchantId, User authenticatedUser) {
@@ -451,22 +580,22 @@ public class MerchantService {
         return merchantDao.getMerchantKeys(merchantId, authenticatedUser);
     }
 
-    public PayAccessResponse updateMerchantCallbackWebhook(UpdateMerchantCallbackRequest updateMerchantCallbackRequest, User authenticatedUser) {
+    public ResponseEntity updateMerchantCallbackWebhook(UpdateMerchantCallbackRequest updateMerchantCallbackRequest, User authenticatedUser) {
         Merchant merchant = merchantDao.updateMerchantCallbackWebhook(updateMerchantCallbackRequest, authenticatedUser);
         if(merchant!=null) {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setResponseObject(merchant);
             payAccessResponse.setMessage("Merchant webhook and callback url updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Merchant webhook and callback url update was not successfully");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
-    public PayAccessResponse addNewMerchantToExistingUser(AddMerchantRequest addMerchantRequest, User authenticatedUser) {
+    public ResponseEntity addNewMerchantToExistingUser(AddMerchantRequest addMerchantRequest, User authenticatedUser) {
         String secretKey = "sk_test_"+RandomStringUtils.randomAlphanumeric(40).toLowerCase();
         String publicKey = "pk_test_"+RandomStringUtils.randomAlphanumeric(40).toLowerCase();
         String secretKeyLive = "sk_live_"+RandomStringUtils.randomAlphanumeric(40).toLowerCase();
@@ -479,11 +608,147 @@ public class MerchantService {
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setResponseObject(merchant);
             payAccessResponse.setMessage("New merchant added successfully. Please proceed to provide other details of the merchant successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("New merchant could not be added successfully");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+    }
+
+    public ResponseEntity updateMerchantPayAccessUsage(String payAccessUse,
+                                                   User authenticatedUser, Long merchantId) {
+
+        Optional<Merchant> merchantOptional = merchantDao.get(merchantId);
+
+        if(merchantOptional.isPresent())
+        {
+            Merchant merchant = merchantOptional.get();
+            merchant.setPayAccessUsage(payAccessUse.toUpperCase());
+            merchantDao.updateMerchantPayAccessUsage(merchant, authenticatedUser);
+
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Usage Updated successfully");
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+
+        }
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Usage was not Updated successfully");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
+    }
+
+    public ResponseEntity updateMerchantKYCDocuments(String governmentApprovedDocumentFileName,
+                                                        String directorsProofOfIdentityFileName,
+                                                        String businessOwnersDocumentFileName,
+                                                        String shareholdersDocumentFileName,
+                                                        Long merchantId,
+                                                        User authenticatedUser) {
+
+        Merchant merchant = merchantDao.updateMerchantKYCDocuments(governmentApprovedDocumentFileName,
+                directorsProofOfIdentityFileName,
+                businessOwnersDocumentFileName,
+                shareholdersDocumentFileName,
+                merchantId, authenticatedUser);
+        if(merchant!=null)
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Merchant KYC data updated successfully");
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+        }
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Merchant KYC data update was not successful. Please try again");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+    }
+
+    public ResponseEntity requestMerchantApproval(String merchantCode, User authenticatedUser) {
+        Merchant merchant = merchantDao.requestMerchantApproval(merchantCode, authenticatedUser);
+        if(merchant!=null)
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Request for approval has been sent successfully");
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+        }
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Request for approval was not successful. Please try again");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+    }
+
+    public List<MerchantApproval> fetchMerchantApprovalListByMerchant(String merchantCode, User authenticatedUser) {
+        List<MerchantApproval> merchantApprovalList = merchantDao.fetchMerchantApprovalListByMerchant(merchantCode, authenticatedUser);
+        return merchantApprovalList;
+    }
+
+    public ResponseEntity updateApiMode(String merchantCode, Boolean isLive, User authenticatedUser) {
+
+        Merchant merchant = merchantDao.updateApiMode(merchantCode, isLive, authenticatedUser);
+        if(merchant!=null)
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Your merchant profile has been updated to "+ (isLive!=null && isLive.equals(Boolean.TRUE) ? " Live Mode" : " Test Mode" )+" successfully");
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+        }
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+        payAccessResponse.setMessage("Your merchant profile could not be updated to "+ (isLive!=null && isLive.equals(Boolean.TRUE) ? " Live Mode" : " Test Mode" )+". Please try again");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+    }
+
+
+
+
+    public ResponseEntity createMerchantApprovalMakerChecker(MerchantApprovalMakerCheckerRequest merchantApprovalMakerCheckerRequest, User authenticatedUser,
+                                                  Long actorId, String ipAddress, String description,
+                                                  ApplicationAction userAction, String carriedOutByUserFullName, String objectClassReference,
+                                                  Long objectIdReference) {
+
+
+//        Transaction transaction =
+        MakerChecker makerChecker = this.merchantDao.createMerchantApprovalMakerChecker(merchantApprovalMakerCheckerRequest.getApproverEmailAddress(),
+                merchantApprovalMakerCheckerRequest.getCheckerLevel(),
+                merchantApprovalMakerCheckerRequest.getMakerCheckerType(), actorId, ipAddress, description,
+                userAction, carriedOutByUserFullName, objectClassReference,
+                objectIdReference);
+
+        if(makerChecker!=null)
+        {
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setResponseObject(makerChecker);
+            payAccessResponse.setMessage("Maker checker created successfully");
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+        }
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
+        payAccessResponse.setMessage("Maker checker could not be created successfully");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
+
+
+    }
+
+
+
+
+    public Map getMakerCheckerList(String makerCheckerType, Integer rowCount, Integer pageNumber) {
+        return this.merchantDao.getMakerCheckerList(makerCheckerType, rowCount, pageNumber);
+    }
+
+    public List<MakerChecker> getMakerCheckerByUser(String emailAddress, String makerCheckerType) {
+        return this.merchantDao.getMakerCheckerByUser(emailAddress, makerCheckerType);
+    }
+
+    public List<CountryState> getStatesByCountry(String country) {
+        return this.merchantDao.getStatesByCountry(country);
     }
 }

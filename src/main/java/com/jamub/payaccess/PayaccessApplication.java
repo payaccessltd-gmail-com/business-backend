@@ -10,9 +10,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.StandardEnvironment;
 import com.github.ulisesbocchio.jar.resources.JarResourceLoader;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableAutoConfiguration
+@EnableScheduling
 public class PayaccessApplication extends SpringBootServletInitializer
 //		implements ApplicationContextAware
 {

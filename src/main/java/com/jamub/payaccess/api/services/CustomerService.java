@@ -46,18 +46,18 @@ public class CustomerService {
         this.accountDao = accountDao;
     }
 
-    public List<Customer> getAllCustomers(){
+    public Map getAllCustomers(){
         return customerDao.getAll();
     }
 
-    public PayAccessResponse createNewCustomer(CustomerSignUpRequest customerSignUpRequest) {
+    public ResponseEntity createNewCustomer(CustomerSignUpRequest customerSignUpRequest) {
         List<User> existingCustomerUser = userDao.getUserByEmailAddress(customerSignUpRequest.getEmailAddress());
         if(existingCustomerUser!=null && !existingCustomerUser.isEmpty())
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
             payAccessResponse.setMessage("Customer sign up was not successful. Customer email address is already signed up");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
         }
         Customer customer = customerDao.save(customerSignUpRequest);
         if(customer!=null)
@@ -65,29 +65,19 @@ public class CustomerService {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("A One-Time code has been sent to your email - '"+customerSignUpRequest.getEmailAddress().toLowerCase()+"'. Please provide the One-Time code to continue your registration");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
-        payAccessResponse.setMessage("Customer sign up was successful. Please try again");
-        return payAccessResponse;
+        payAccessResponse.setMessage("Customer sign up was not successful. Please try again");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
     }
 
 
 
-    public PayAccessResponse getHoliday() {
-        String uri = "";
-        ResponseEntity<ValidateAccountResponse> responseEntity = restTemplate.getForObject(uri, ResponseEntity.class);
-        ValidateAccountResponse validateAccountResponse = responseEntity.getBody();
-        HttpStatus httpStatus = responseEntity.getStatusCode();
-        PayAccessResponse payAccessResponse = new  PayAccessResponse();
-        return payAccessResponse;
-    }
 
-
-
-    public PayAccessResponse updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest, User authenticatedUser, AccountService accountService) {
+    public ResponseEntity updateCustomerBioData(CustomerBioDataUpdateRequest customerBioDataUpdateRequest, User authenticatedUser, AccountService accountService) {
 
         Customer customer = customerDao.updateCustomerBioData(customerBioDataUpdateRequest, authenticatedUser);
         if(customer!=null)
@@ -95,17 +85,17 @@ public class CustomerService {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Customer Bio-Data updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Customer Bio-Data update was not successful. Please try again");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
     }
 
-    public PayAccessResponse updateUserPin(CustomerPinUpdateRequest customerPinUpdateRequest, User authenticatedUser) {
+    public ResponseEntity updateUserPin(CustomerPinUpdateRequest customerPinUpdateRequest, User authenticatedUser) {
 
         User user = userDao.updateUserPin(customerPinUpdateRequest, authenticatedUser);
         if(user!=null)
@@ -113,17 +103,17 @@ public class CustomerService {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("User pin updated successfully");
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("User pin update was not successful. Please try again");
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
     }
 
 
-//    public PayAccessResponse createCustomerAccountPin(Account account, AccountService accountService,
+//    public ResponseEntity createCustomerAccountPin(Account account, AccountService accountService,
 //                                                      CustomerPinUpdateRequest customerPinUpdateRequest, User authenticatedUser) {
 //
 //        User user = accountDao.createAccountPin(account, customerPinUpdateRequest, authenticatedUser);
@@ -132,13 +122,13 @@ public class CustomerService {
 //            PayAccessResponse payAccessResponse = new PayAccessResponse();
 //            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
 //            payAccessResponse.setMessage("User pin updated successfully");
-//            return payAccessResponse;
+//            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
 //        }
 //
 //        PayAccessResponse payAccessResponse = new PayAccessResponse();
 //        payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
 //        payAccessResponse.setMessage("User pin update was not successful. Please try again");
-//        return payAccessResponse;
+//        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
 //    }
 
     public Customer getCustomerByUserId(Long customerId) {

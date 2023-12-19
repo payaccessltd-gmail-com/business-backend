@@ -2,12 +2,16 @@ package com.jamub.payaccess.api.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.jamub.payaccess.api.dao.TransactionDao;
 import com.jamub.payaccess.api.dao.UserDao;
 import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.APIMode;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.enums.TransactionStatus;
+import com.jamub.payaccess.api.models.PaymentRequest;
 import com.jamub.payaccess.api.models.Terminal;
 import com.jamub.payaccess.api.models.response.AuthOTPResponse;
 import com.jamub.payaccess.api.models.response.ISWCardPaymentResponse;
@@ -21,6 +25,9 @@ import net.minidev.json.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,20 +49,34 @@ public class TransactionService {
         this.userDao = userDao;
     }
 
-    public PayAccessResponse getTransactions(TransactionFilterRequest transactionFilterRequest){
+    public ResponseEntity getTransactions(TransactionFilterRequest transactionFilterRequest, Integer pageNumber, Integer pageSize){
 
-        List<Transaction> allTransactions = transactionDao.getAll(transactionFilterRequest);
+        Map allTransactions = transactionDao.getAll(transactionFilterRequest, pageNumber, pageSize);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
         payAccessResponse.setResponseObject(allTransactions);
         payAccessResponse.setMessage("Transactions");
         payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
 
-        return payAccessResponse;
+        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
     }
 
-    public PayAccessResponse debitCard(ISWService iswService, Merchant merchant, Terminal terminal, InitiateTransactionRequest initiateTransactionRequest,
-                                       String authorizationToken, String deviceAuthorizationToken,
-                                       ISWAuthTokenResponse iswAuthTokenResponse) {
+
+
+    public ResponseEntity getTransactionsByMerchantId(TransactionFilterRequest transactionFilterRequest, Integer pageNumber, Integer pageSize, Long merchantId){
+
+        Map allTransactions = transactionDao.getAllByMerchantId(transactionFilterRequest, pageNumber, pageSize, merchantId);
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setResponseObject(allTransactions);
+        payAccessResponse.setMessage("Transactions");
+        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+
+        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+    }
+
+    public ResponseEntity debitCard(ISWService iswService, Merchant merchant, Terminal terminal, InitiateTransactionRequest initiateTransactionRequest,
+                                    String authorizationToken, String deviceAuthorizationToken,
+                                    ISWAuthTokenResponse iswAuthTokenResponse, PaymentRequest paymentRequest,
+                                    PaymentRequestService paymentRequestService) {
 
         String merchantCode = merchant.getMerchantCode();
         String merchantSecretKey = merchant.getApiMode().equals(APIMode.TEST) ? merchant.getSecretKey() : merchant.getSecretKeyLive();
@@ -74,7 +95,7 @@ public class TransactionService {
 //                payAccessResponse.setMessage("Hash Security compare failed");
 //                payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
 //
-//                return payAccessResponse;
+//                return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
 //            }
 
 //            if(initiateTransactionRequest.getChannel().equals(Channel.POS))
@@ -85,7 +106,7 @@ public class TransactionService {
 //                    payAccessResponse.setMessage("Hash Security compare failed");
 //                    payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
 //
-//                    return payAccessResponse;
+//                    return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
 //                }
 //            }
 
@@ -98,13 +119,34 @@ public class TransactionService {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-            transaction = transactionDao.createNewTransaction(initiateTransactionRequest, merchant, terminal, messageRequest);
+
+            try {
+                transaction = transactionDao.createNewTransaction(initiateTransactionRequest, merchant, terminal, messageRequest);
+            }
+            catch(DuplicateKeyException e)
+            {
+                PayAccessResponse payAccessResponse = new PayAccessResponse();
+                payAccessResponse.setMessage("Transaction could not be initiated. Order reference provided has previously been used");
+                payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
+
+
+                paymentRequest.setResponseBody(new ObjectMapper().writeValueAsString(paymentRequest));
+                paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+            }
 
             if(transaction==null)
             {
                 PayAccessResponse payAccessResponse = new PayAccessResponse();
                 payAccessResponse.setMessage("Transaction could not be initiated. Please try again");
                 payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+
+
+                paymentRequest.setResponseBody(new ObjectMapper().writeValueAsString(paymentRequest));
+                paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
             }
 
             ISWCardPaymentResponse iswCardPaymentResponse = iswService.handleCardPurchase(iswAuthTokenResponse, initiateTransactionRequest, merchant);
@@ -127,7 +169,14 @@ public class TransactionService {
                 payAccessResponse.setMessage(iswCardPaymentResponse.getMessage().concat(". ").concat(iswCardPaymentResponse.getPlainTextSupportMessage()));
                 payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
 
-                return payAccessResponse;
+
+
+
+
+                paymentRequest.setResponseBody(new ObjectMapper().writeValueAsString(paymentRequest));
+                paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+                return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
             }
 
 
@@ -139,7 +188,14 @@ public class TransactionService {
             payAccessResponse.setMessage("Error experienced initiating transaction");
             payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
 
-            return payAccessResponse;
+
+
+
+
+            paymentRequest.setResponseBody(new ObjectMapper().writeValueAsString(paymentRequest));
+            paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
 
 
         } catch (NoSuchAlgorithmException e) {
@@ -170,9 +226,10 @@ public class TransactionService {
         return token;
     }
 
-    public PayAccessResponse authenticateCardPaymentOtp(ISWService iswService, Merchant merchant,
+    public ResponseEntity authenticateCardPaymentOtp(ISWService iswService, Merchant merchant,
                             AuthenticateCardPaymentOtpRequest authenticateCardPaymentOtpRequest, String authorizationToken,
-                            String deviceAuthorizationToken, ISWAuthTokenResponse iswAuthTokenResponse, Transaction transaction) {
+                            String deviceAuthorizationToken, ISWAuthTokenResponse iswAuthTokenResponse, Transaction transaction,
+                                                     PaymentRequest paymentRequest, PaymentRequestService paymentRequestService) {
         String merchantCode = merchant.getMerchantCode();
         String merchantSecretKey = merchant.getApiMode().equals(APIMode.TEST) ? merchant.getSecretKey() : merchant.getSecretKeyLive();
 
@@ -196,6 +253,15 @@ public class TransactionService {
                 payAccessResponse.setResponseObject(transaction);
                 payAccessResponse.setMessage("Payment was successful");
                 payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+
+
+                paymentRequest.setResponseBody(new ObjectMapper()
+                        .registerModule(new ParameterNamesModule())
+                        .registerModule(new Jdk8Module())
+                        .registerModule(new JavaTimeModule()).writeValueAsString(payAccessResponse));
+                paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+                return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
             }
             else
             {
@@ -206,16 +272,21 @@ public class TransactionService {
                 messageResponseJSON.put("authenticateOTPResp", authOTPResponse);
                 transaction.setMessageResponse(messageResponseJSON.toJSONString());
                 transaction.setSwitchTransactionRef(authOTPResponse.getTransactionIdentifier());
-                transaction.setTransactionStatus(TransactionStatus.SUCCESS);
+                transaction.setTransactionStatus(TransactionStatus.FAIL);
                 transaction = transactionDao.updateTransaction(transaction);
 
                 payAccessResponse.setResponseObject(authOTPResponse);
                 payAccessResponse.setMessage("Payment was not successful. Reason: ".concat(payAccessResponse.getMessage()));
-                payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+                payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
+
+
+                paymentRequest.setResponseBody(new ObjectMapper().writeValueAsString(payAccessResponse));
+                paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
             }
 
 
-            return payAccessResponse;
 
 
         } catch (NoSuchAlgorithmException e) {

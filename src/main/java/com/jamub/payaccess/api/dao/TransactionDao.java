@@ -13,13 +13,17 @@ import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +34,7 @@ public class TransactionDao implements Dao<Transaction>{
     JdbcTemplate jdbcTemplate;
     private SimpleJdbcCall getTransaction;
     private SimpleJdbcCall getAllTransactions;
+    private SimpleJdbcCall getAllTransactionsByMerchantId;
     private SimpleJdbcCall createNewTransaction;
     private SimpleJdbcCall updateTransaction;
     private SimpleJdbcCall getTransactionByOrderRef;
@@ -48,7 +53,27 @@ public class TransactionDao implements Dao<Transaction>{
         getAllTransactions = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("GetAllTransactions")
                 .returningResultSet("#result-set-1",
-                        MerchantRowMapper.newInstance(Transaction.class));
+                        MerchantRowMapper.newInstance(Transaction.class))
+                .returningResultSet("#result-set-2", new BeanPropertyRowMapper<Integer>()
+                {
+                    @Override
+                    public Integer mapRow(ResultSet rs, int rowNum) throws SQLException
+                    {
+                        return rs.getInt("count");
+                    }
+                });
+        getAllTransactionsByMerchantId = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("GetAllTransactionsByMerchantId")
+                .returningResultSet("#result-set-1",
+                        MerchantRowMapper.newInstance(Transaction.class))
+                .returningResultSet("#result-set-2", new BeanPropertyRowMapper<Integer>()
+                {
+                    @Override
+                    public Integer mapRow(ResultSet rs, int rowNum) throws SQLException
+                    {
+                        return rs.getInt("count");
+                    }
+                });
         createNewTransaction = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("CreateNewTransaction")
                 .returningResultSet("#result-set-1",
@@ -69,7 +94,7 @@ public class TransactionDao implements Dao<Transaction>{
     }
 
     @Override
-    public List<Transaction> getAll() {
+    public Map getAll() {
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("transactionStatus", null)
                 .addValue("merchantCode", null)
@@ -81,23 +106,59 @@ public class TransactionDao implements Dao<Transaction>{
         Map<String, Object> m = getAllTransactions.execute(in);
 
         List<Transaction> result = (List<Transaction>) m.get("#result-set-1");
-        return result;
+        Integer totalCount = (Integer) m.get("#result-set-2");
+        Map returnList = new HashMap();
+        returnList.put("list", result);
+        returnList.put("totalCount", 100);
+        return returnList;
     }
 
 
-    public List<Transaction> getAll(TransactionFilterRequest transactionFilterRequest) {
+    public Map getAll(TransactionFilterRequest transactionFilterRequest, Integer pageNumber, Integer pageSize) {
         MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("pageNumber", pageNumber)
+                .addValue("pageSize", pageSize)
                 .addValue("transactionStatus", transactionFilterRequest.getTransactionStatus())
                 .addValue("merchantCode", transactionFilterRequest.getMerchantCode())
                 .addValue("startDate", transactionFilterRequest.getStartDate())
                 .addValue("endDate", transactionFilterRequest.getEndDate())
+                .addValue("minAmount", transactionFilterRequest.getMinAmount())
+                .addValue("maxAmount", transactionFilterRequest.getMaxAmount())
                 .addValue("orderRef", transactionFilterRequest.getOrderRef())
                 .addValue("switchTransactionRef", transactionFilterRequest.getSwitchTransactionRef())
                 .addValue("terminalCode", transactionFilterRequest.getTerminalCode());
         Map<String, Object> m = getAllTransactions.execute(in);
 
         List<Transaction> result = (List<Transaction>) m.get("#result-set-1");
-        return result;
+        List<Integer> totalCountResult = (List<Integer>) m.get("#result-set-2");
+        Map returnList = new HashMap();
+        returnList.put("list", result);
+        returnList.put("totalCount", totalCountResult.get(0));
+        return returnList;
+    }
+
+
+    public Map getAllByMerchantId(TransactionFilterRequest transactionFilterRequest, Integer pageNumber, Integer pageSize, Long merchantId) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("pageNumber", pageNumber)
+                .addValue("pageSize", pageSize)
+                .addValue("transactionStatus", transactionFilterRequest==null ? null : transactionFilterRequest.getTransactionStatus())
+                .addValue("merchantId", merchantId)
+                .addValue("startDate", transactionFilterRequest==null ? null : transactionFilterRequest.getStartDate())
+                .addValue("endDate", transactionFilterRequest==null ? null : transactionFilterRequest.getEndDate())
+                .addValue("orderRef", transactionFilterRequest==null ? null : transactionFilterRequest.getOrderRef())
+                .addValue("minAmount", transactionFilterRequest.getMinAmount())
+                .addValue("maxAmount", transactionFilterRequest.getMaxAmount())
+                .addValue("switchTransactionRef", transactionFilterRequest==null ? null : transactionFilterRequest.getSwitchTransactionRef())
+                .addValue("terminalCode", transactionFilterRequest==null ? null : transactionFilterRequest.getTerminalCode());
+        Map<String, Object> m = getAllTransactionsByMerchantId.execute(in);
+
+        List<Transaction> result = (List<Transaction>) m.get("#result-set-1");
+        List<Integer> totalCountResult = (List<Integer>) m.get("#result-set-2");
+        Map returnList = new HashMap();
+        returnList.put("list", result);
+        returnList.put("totalCount", totalCountResult.get(0));
+        return returnList;
     }
 
     @Override

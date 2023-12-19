@@ -61,7 +61,7 @@ public class MerchantSetting implements Serializable {
     private Long merchantId;
 
     @Column(nullable= true)
-    private Boolean enableAcceptPOSChannel;
+    private Boolean enableAcceptPosChannel;
 
     @Column(nullable= true)
     private Boolean enableAcceptBankTransfers;
@@ -73,7 +73,7 @@ public class MerchantSetting implements Serializable {
     private Boolean enableAcceptMobileMoneyTransfer;
 
     @Column(nullable= true)
-    private Boolean enableUSSDTransfer;
+    private Boolean enableUssdTransfer;
 
 
 

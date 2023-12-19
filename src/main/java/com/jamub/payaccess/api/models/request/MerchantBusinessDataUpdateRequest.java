@@ -9,6 +9,7 @@ import java.util.Date;
 
 @Getter @Setter
 public class MerchantBusinessDataUpdateRequest {
+
     private String businessDescription;
     private String businessEmail;
     private String primaryMobile;
@@ -17,6 +18,8 @@ public class MerchantBusinessDataUpdateRequest {
     private String businessState;
     private String businessWebsite;
     private String businessLogo;
+    private String businessCertificateFile;
     private Long merchantId;
     private String country;
+    private String businessAddress;
 }

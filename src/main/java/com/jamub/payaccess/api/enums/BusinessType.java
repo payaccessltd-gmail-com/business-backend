@@ -1,7 +1,7 @@
 package com.jamub.payaccess.api.enums;
 
 public enum BusinessType {
-    INDIVIDUAL("INDIVIDUAL"), REGISTERED_BUSINESS("REGISTERED BUSINESS");
+    INDIVIDUAL("INDIVIDUAL"), REGISTERED_BUSINESS("REGISTERED BUSINESS"), NGO_BUSINESS("NGO BUSINESS");
 
 
     public final String value;

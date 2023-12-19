@@ -85,7 +85,7 @@ public class AccountService {
         return accountBalanceResponse;
     }
 
-    public PayAccessResponse validateAccountRecipient(RestTemplate restTemplate, ValidateAccountRequest validateAccountRequest, String endpointUrl,
+    public ResponseEntity validateAccountRecipient(RestTemplate restTemplate, ValidateAccountRequest validateAccountRequest, String endpointUrl,
                                                       String authorizationString, String signature, String clientId1, String secretKey1,
                                                       String merchantClientId, String merchantSecretKey) throws UnsupportedEncodingException, NoSuchAlgorithmException {
 
@@ -152,27 +152,27 @@ public class AccountService {
                 payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
                 payAccessResponse.setMessage("Validation Successful");
                 payAccessResponse.setResponseObject(validateAccountResponse);
-                return payAccessResponse;
+                return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
             }
 
             payAccessResponse.setStatusCode(PayAccessStatusCode.VALIDATION_FAILED.label);
             payAccessResponse.setMessage("Validation Failed");
             payAccessResponse.setResponseObject(null);
-            return payAccessResponse;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
 
         }
         catch(HttpServerErrorException e)
         {
             PayAccessResponse payAccessResponse = new  PayAccessResponse();
-            payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-            payAccessResponse.setMessage("Authorization Failed");
-            payAccessResponse.setResponseObject(null);
-            return payAccessResponse;
+            payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
+            payAccessResponse.setMessage("Account validation was not successful at this moment");
+            payAccessResponse.setResponseObject(e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(payAccessResponse);
         }
     }
 
 
-    public PayAccessResponse sendFundsToBankAccount()
+    public ResponseEntity sendFundsToBankAccount()
     {
         return null;
     }

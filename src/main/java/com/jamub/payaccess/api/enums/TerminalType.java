@@ -1,7 +1,7 @@
 package com.jamub.payaccess.api.enums;
 
 public enum TerminalType {
-    POS("POS"), ATM("ATM"), MOBILE("MOBILE");
+    POS("POS"), ATM("ATM"), MOBILE("MOBILE"), WEB("WEB");
 
 
     public final String value;

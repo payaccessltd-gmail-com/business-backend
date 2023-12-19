@@ -3,7 +3,6 @@ package com.jamub.payaccess.api.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.jamub.payaccess.api.enums.BusinessCategory;
 import com.jamub.payaccess.api.enums.BusinessType;
-import com.jamub.payaccess.api.enums.Country;
 import com.jamub.payaccess.api.enums.MerchantStatus;
 import lombok.Getter;
 import lombok.Setter;

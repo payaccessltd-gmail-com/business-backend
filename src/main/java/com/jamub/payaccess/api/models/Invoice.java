@@ -45,6 +45,14 @@ public class Invoice implements Serializable {
     private BigDecimal shippingFee;
     @Column(nullable= true)
     private String invoiceNote;
+    @Column(nullable= true)
+    private BigDecimal discount;
+    @Column(nullable= true)
+    private String invoiceNumber;
+
+    @Column(nullable= true)
+    @Enumerated(EnumType.STRING)
+    private DiscountType discountType;
 
     @Column(nullable= false)
     @Enumerated(EnumType.STRING)
@@ -65,7 +73,12 @@ public class Invoice implements Serializable {
     @Column(nullable= true)
     private Long paymentTransactionId;
 
+    private String referenceNumber;
 
+
+
+    @Column(nullable= true)
+    private String qrFileName;
 
 
 }
