@@ -48,7 +48,8 @@ public class SettingsController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
-    @RequestMapping(value = "/update-merchant-business-information", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/update-merchant-business-information", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Business Information", response = ResponseEntity.class)
     @ApiResponses(value = {

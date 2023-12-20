@@ -123,7 +123,7 @@ public class MerchantController {
     @CrossOrigin
     @RequestMapping(value = "/update-about-business", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
-    @ApiOperation(value = "Sign Up New Merchant", response = ResponseEntity.class)
+    @ApiOperation(value = "Update Merchants About Business", response = ResponseEntity.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successful"),
             @ApiResponse(code = 400, message = "Validation of request parameters failed"),
@@ -303,7 +303,8 @@ public class MerchantController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
-    @RequestMapping(value = "/update-merchant-bio-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/update-merchant-bio-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Bio Data", response = ResponseEntity.class)
     @ApiResponses(value = {
@@ -383,7 +384,8 @@ public class MerchantController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
-    @RequestMapping(value = "/update-merchant-kyc", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/update-merchant-kyc", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant KYC", response = ResponseEntity.class)
     @ApiResponses(value = {
@@ -475,7 +477,8 @@ public class MerchantController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
-    @RequestMapping(value = "/update-merchant-business-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/update-merchant-business-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Business Data Info", response = ResponseEntity.class)
     @ApiResponses(value = {

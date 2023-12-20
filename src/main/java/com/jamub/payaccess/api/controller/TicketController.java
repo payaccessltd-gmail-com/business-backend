@@ -50,7 +50,8 @@ public class TicketController {
 
     @CrossOrigin
     //CREATE_TICKET
-    @RequestMapping(value = "/create-transaction-ticket", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/create-transaction-ticket", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create transaction ticket", response = ResponseEntity.class)
     @ApiResponses(value = {

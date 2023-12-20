@@ -9,8 +9,6 @@ import com.jamub.payaccess.api.models.Bank;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.CreateAcquirerRequest;
-import com.jamub.payaccess.api.models.request.CreateContactUsRequest;
-import com.jamub.payaccess.api.models.request.CreateFeedbackRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.services.AcquirerService;
 import com.jamub.payaccess.api.services.BankService;

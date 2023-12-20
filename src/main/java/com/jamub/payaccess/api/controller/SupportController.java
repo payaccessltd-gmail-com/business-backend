@@ -45,7 +45,8 @@ public class SupportController {
 
     @CrossOrigin
     //CREATE_CONTACT_US_MESSAGE
-    @RequestMapping(value = "/create-contact-us-message", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/create-contact-us-message", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create contact us messages", response = ResponseEntity.class)
     @ApiResponses(value = {
@@ -125,7 +126,8 @@ public class SupportController {
 
     @CrossOrigin
     //CREATE_FEEDBACK_MESSAGE
-    @RequestMapping(value = "/create-feedback-message", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/create-feedback-message", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create Feedback messages", response = ResponseEntity.class)
     @ApiResponses(value = {

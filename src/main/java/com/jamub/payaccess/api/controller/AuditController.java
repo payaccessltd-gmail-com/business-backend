@@ -2,17 +2,12 @@ package com.jamub.payaccess.api.controller;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.models.Merchant;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.AuditTrailFilterRequest;
-import com.jamub.payaccess.api.models.request.GetMerchantFilterRequest;
-import com.jamub.payaccess.api.models.request.MerchantBusinessDataUpdateRequest;
-import com.jamub.payaccess.api.models.request.MerchantBusinessInformationUpdateRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.services.AuditTrailService;
-import com.jamub.payaccess.api.services.MerchantService;
 import com.jamub.payaccess.api.services.TokenService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -23,11 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/audit")
