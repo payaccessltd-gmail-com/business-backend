@@ -1,13 +1,19 @@
 package com.jamub.payaccess.api.exception;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -16,6 +22,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +36,7 @@ import java.util.Map;
 /**
  * Class for formatting exceptions
  */
-public class PayAccessExceptionHandler {
+public class PayAccessExceptionHandler implements AccessDeniedHandler{
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     @ExceptionHandler(Throwable.class)
@@ -59,4 +69,37 @@ public class PayAccessExceptionHandler {
 
         return payAccessResponse;
     }
+
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    public PayAccessResponse commence(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex) throws IOException {
+        Map<String, String> errors = new HashMap<>();
+
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.ACCESS_LEVELS_INSUFFICIENT.label);
+        payAccessResponse.setMessage("Access to resource denied.");
+        payAccessResponse.setResponseObject(errors);
+
+        return payAccessResponse;
+    }
+
+
+
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+        Map<String, String> errors = new HashMap<>();
+
+
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.ACCESS_LEVELS_INSUFFICIENT.label);
+        payAccessResponse.setMessage("Access to resource denied.");
+        payAccessResponse.setResponseObject(errors);
+
+        response.getWriter().write(new ObjectMapper().writeValueAsString(payAccessResponse));
+    }
+
+
+
 }

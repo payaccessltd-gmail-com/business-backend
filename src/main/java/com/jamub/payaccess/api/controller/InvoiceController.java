@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -80,6 +81,7 @@ public class InvoiceController {
 
     @CrossOrigin
     //CREATE_INVOICE
+    @PreAuthorize("hasRole('ROLE_CREATE_INVOICE')")
     @RequestMapping(value = "/create-simple-invoice", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
@@ -160,7 +162,6 @@ public class InvoiceController {
                     createNewInvoiceRequest.setMerchantId(createSimpleInvoiceRequest.getMerchantId());
                     createNewInvoiceRequest.setInvoiceStatus(createSimpleInvoiceRequest.getInvoiceStatus());
 
-                    System.out.println("................................");
                     Merchant merchant = merchantService.getMerchantById(createNewInvoiceRequest.getMerchantId());
                     return invoiceService.createSimpleInvoice(createNewInvoiceRequest, authenticatedUser, createSimpleInvoiceRequest.getInvoiceStatus(), merchant, invoiceQRPath);
                 }
@@ -203,6 +204,7 @@ public class InvoiceController {
 
     @CrossOrigin
     //CREATE_INVOICE
+    @PreAuthorize("hasRole('ROLE_CREATE_INVOICE')")
     @RequestMapping(value = "/create-standard-invoice", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create Standard Invoice", response = ResponseEntity.class)
@@ -290,6 +292,7 @@ public class InvoiceController {
 
     @CrossOrigin
     //RESEND_INVOICE_EMAIL
+    @PreAuthorize("hasRole('ROLE_RESEND_INVOICE_EMAIL')")
     @RequestMapping(value = "/resend-invoice-email/{invoiceId}/{merchantId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Resend Invoice Email for Payment", response = ResponseEntity.class)
@@ -354,6 +357,7 @@ public class InvoiceController {
 
     @CrossOrigin
     //MARK_INVOICE_AS_PAID
+    @PreAuthorize("hasRole('ROLE_MARK_INVOICE_AS_PAID')")
     @RequestMapping(value = "/mark-invoice-paid/{invoiceId}/{merchantId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Mark Invoice As Paid", response = ResponseEntity.class)
@@ -407,6 +411,7 @@ public class InvoiceController {
 
     @CrossOrigin
     //DELETE_INVOICE
+    @PreAuthorize("hasRole('ROLE_DELETE_INVOICE')")
     @RequestMapping(value = "/delete-invoice/{invoiceId}/{merchantId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Delete Invoice", response = ResponseEntity.class)
@@ -459,6 +464,7 @@ public class InvoiceController {
 
     @CrossOrigin
     //VIEW_INVOICES
+    @PreAuthorize("hasRole('ROLE_VIEW_INVOICES')")
     @RequestMapping(value = "/filter-invoice", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List Invoices Using Filter", response = ResponseEntity.class)
@@ -513,6 +519,7 @@ public class InvoiceController {
 
     @CrossOrigin
     //VIEW_INVOICES
+    @PreAuthorize("hasRole('ROLE_VIEW_INVOICES')")
     @RequestMapping(value = "/get-invoice-details/{invoiceId}/{merchantId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get Invoice Details", response = ResponseEntity.class)
@@ -526,9 +533,7 @@ public class InvoiceController {
                                                 @PathVariable Long merchantId,
                                                 HttpServletRequest request,
                                                 HttpServletResponse response) throws JsonProcessingException {
-        System.out.println("merchantId...." + merchantId);
 
-        System.out.println("invoiceId..." + invoiceId);
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -612,9 +617,7 @@ public class InvoiceController {
                                                 @PathVariable String merchantCode,
                                                 HttpServletRequest request,
                                                 HttpServletResponse response) throws JsonProcessingException {
-        System.out.println("invoiceId");
 
-        System.out.println("invoiceId..." + invoiceNumber);
 
 
         Invoice invoice = invoiceService.getInvoice(invoiceNumber, merchantCode);
@@ -633,6 +636,7 @@ public class InvoiceController {
 
     @CrossOrigin
     //VIEW_INVOICES
+    @PreAuthorize("hasRole('ROLE_VIEW_INVOICES')")
     @RequestMapping(value = {"/get-invoices/{merchantId}/{rowCount}", "/get-invoices/{merchantId}/{rowCount}/{pageNumber}"}, method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get List of Invoices", response = ResponseEntity.class)
@@ -666,6 +670,7 @@ public class InvoiceController {
 
     @CrossOrigin
     //VIEW_INVOICES
+    @PreAuthorize("hasRole('ROLE_VIEW_INVOICES')")
     @RequestMapping(value = "/get-invoice-breakdown/{merchantId}/{invoiceId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get Breakdown of Invoice Items", response = ResponseEntity.class)
@@ -679,9 +684,7 @@ public class InvoiceController {
                                                  @PathVariable Long invoiceId,
                                                  HttpServletRequest request,
                                                  HttpServletResponse response) throws JsonProcessingException {
-        System.out.println("invoiceId");
 
-        System.out.println("invoiceId..." + invoiceId);
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 

@@ -12,11 +12,14 @@ import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.services.MerchantService;
 import com.jamub.payaccess.api.services.TokenService;
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 @Api(produces = "application/json", value = "Operations pertaining to Settings")
 public class SettingsController {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     TokenService tokenService;
@@ -48,6 +51,7 @@ public class SettingsController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-business-information", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
@@ -67,7 +71,6 @@ public class SettingsController {
         {
             Merchant merchant = merchantService.getMerchantById(merchantBusinessInformationUpdateRequest.getMerchantId());
 
-            System.out.println(merchant.getUserId() + "..." + authenticatedUser.getId());
             if(!merchant.getUserId().equals(authenticatedUser.getId()))
             {
                 PayAccessResponse payAccessResponse = new  PayAccessResponse();
@@ -138,6 +141,7 @@ public class SettingsController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-transaction-fee-payer", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Who Pays Transaction Fee", response = ResponseEntity.class)
@@ -188,6 +192,7 @@ public class SettingsController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-receive-earnings", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update How Merchant Intends to Receive Earnings. By BANK_ACCOUNT or PAYACCESS_WALLET", response = ResponseEntity.class)
@@ -234,6 +239,7 @@ public class SettingsController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-business-type", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Business Type", response = ResponseEntity.class)
@@ -281,6 +287,7 @@ public class SettingsController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-notifications", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Notifications", response = ResponseEntity.class)
@@ -327,6 +334,7 @@ public class SettingsController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-security", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Security", response = ResponseEntity.class)
@@ -371,6 +379,7 @@ public class SettingsController {
 
     @CrossOrigin
     //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-payment-settings", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Payment Settings", response = ResponseEntity.class)
@@ -415,6 +424,7 @@ public class SettingsController {
 
     @CrossOrigin
     //VIEW_MERCHANT
+    @PreAuthorize("hasRole('ROLE_VIEW_MERCHANT')")
     @RequestMapping(value = "/get-merchant-settings/{merchantId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "View merchant settings", response = ResponseEntity.class)
@@ -446,7 +456,7 @@ public class SettingsController {
 
     @CrossOrigin
     @RequestMapping(value = "/get-countries-list", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
+//    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List countries", response = ResponseEntity.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successful"),
@@ -482,7 +492,7 @@ public class SettingsController {
 
     @CrossOrigin
     @RequestMapping(value = "/get-states-list/{country}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
+//    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List Nigerian States", response = ResponseEntity.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successful"),

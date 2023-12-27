@@ -28,12 +28,48 @@ public enum Permission {
     SWITCH_API_MODE("Switch API Mode of Merchant"),
     VIEW_PAYMENT_REQUEST("View Payment Requests"),
     CREATE_ROLE_PERMISSION("Create Role Permissions"),
+    VIEW_ROLE_PERMISSION("View Role Permissions"),
+    VIEW_PERMISSION("View Permissions"),
+    VIEW_ROLE("View Roles"),
     CREATE_CONTACT_US_MESSAGE("Create Contact Us Messages"),
     CREATE_FEEDBACK_MESSAGE("Create Feedback Messages"),
 
     CREATE_TICKET("Create Transaction Ticket"),
 
-    VIEW_TICKETS("View Transaction Tickets");
+    ASSIGN_TICKET("Assign Transaction Ticket"),
+
+    VIEW_TICKET("View Transaction Tickets"),
+
+    CLOSE_TICKET("Close Transaction Tickets"),
+
+    VIEW_SETTLEMENT("View Settlement"),
+
+    CREATE_TERMINAL_REQUEST("Create Terminal Request"),
+    VIEW_TERMINAL_REQUEST("View Terminal Requests"),
+    APPROVE_TERMINAL_REQUEST("Approve Terminal Request"),
+    DISAPPROVE_TERMINAL_REQUEST("Disapprove Terminal Request"),
+    DELETE_TERMINAL_REQUEST("Delete Terminal Request"),
+    VIEW_TERMINAL("View Terminals"),
+
+    VIEW_TRANSACTION("View Transactions"),
+
+    DEBIT_CARD("Debit Payment Card"),
+
+    AUTHORIZE_CARD_PAYMENT("Authorize Card Payment"),
+
+    CREATE_ADMIN_USER("Create Administrator"),
+
+    UPDATE_ADMIN_USER("Update Administrator"),
+
+    VIEW_USER("View details of a registered user"),
+
+    UPDATE_USER("Update details of a registered user"),
+
+    GENERATE_OTP_FOR_USER("Generate OTP for registered users"),
+
+    VALIDATE_OTP_FOR_USER("Validate OTP for registered users"),
+
+    UPDATE_USER_STATUS("Update status of registered users");
 
     public final String value;
 

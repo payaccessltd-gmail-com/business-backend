@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,6 +47,7 @@ public class PaymentRequestController {
 
     @CrossOrigin
     //VIEW_PAYMENT_REQUEST
+    @PreAuthorize("hasRole('ROLE_VIEW_PAYMENT_REQUEST')")
     @RequestMapping(value = "/get-payment-requests/{pageNumber}/{pageSize}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List Requests For Payments", response = ResponseEntity.class)
@@ -85,6 +87,7 @@ public class PaymentRequestController {
 
     @CrossOrigin
     //VIEW_PAYMENT_REQUEST
+    @PreAuthorize("hasRole('ROLE_VIEW_PAYMENT_REQUEST')")
     @RequestMapping(value = "/get-payment-request-by-id/{paymentRequestId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get Payment Request By Id", response = ResponseEntity.class)

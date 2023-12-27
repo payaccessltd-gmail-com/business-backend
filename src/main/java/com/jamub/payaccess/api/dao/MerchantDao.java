@@ -88,6 +88,7 @@ public class MerchantDao implements Dao<Merchant>{
     private SimpleJdbcCall getMakerCheckerByUser;
 
     private SimpleJdbcCall getStateByCountry;
+    private SimpleJdbcCall getMerchantIdsByUsername;
 
 
     @Autowired
@@ -385,6 +386,11 @@ public class MerchantDao implements Dao<Merchant>{
                 .returningResultSet("#result-set-1",
                         MerchantRowMapper.newInstance(CountryState.class));
 
+        getMerchantIdsByUsername = new SimpleJdbcCall(jdbcTemplate)
+//                .withFunctionName("GetUserByEmailAddress")
+                .withProcedureName("GetMerchantIdsByUsername")
+                .returningResultSet("#result-set-1",
+                        RowMapper.newInstance(AuthMerchantData.class));
     }
 
     @Override
@@ -1008,6 +1014,16 @@ public class MerchantDao implements Dao<Merchant>{
         Map<String, Object> m = getStateByCountry.execute(in);
         logger.info("{}", m);
         List<CountryState> result = (List<CountryState>) m.get("#result-set-1");
+        return result;
+    }
+
+    public List<AuthMerchantData> getMerchantIdsByUsername(String emailAddress) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("emailAddress", emailAddress);
+
+        Map<String, Object> m = getMerchantIdsByUsername.execute(in);
+        logger.info("{}", m);
+        List<AuthMerchantData> result = (List<AuthMerchantData>) m.get("#result-set-1");
         return result;
     }
 }

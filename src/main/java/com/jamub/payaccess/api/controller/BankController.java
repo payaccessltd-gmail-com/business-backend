@@ -3,6 +3,7 @@ package com.jamub.payaccess.api.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.ApplicationAction;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.enums.Permission;
 import com.jamub.payaccess.api.models.Bank;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.User;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +49,7 @@ public class BankController {
 
     @CrossOrigin
     //CREATE_NEW_BANK
+    @PreAuthorize("hasRole('ROLE_CREATE_NEW_BANK')")
     @RequestMapping(value = "/create-new-bank", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create New Bank", response = ResponseEntity.class)
@@ -105,7 +108,7 @@ public class BankController {
 
 
     @CrossOrigin
-    //VIEW_BANKS
+    @PreAuthorize("hasRole('ROLE_VIEW_BANKS')")
     @RequestMapping(value = "/get-banks/{pageNumber}/{pageSize}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get List of Banks", response = ResponseEntity.class)

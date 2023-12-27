@@ -1,4 +1,4 @@
-package com.jamub.payaccess.api.config;
+package com.jamub.payaccess.api.filters;
 
 import java.io.IOException;
 import javax.servlet.Filter;
@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
 @Component

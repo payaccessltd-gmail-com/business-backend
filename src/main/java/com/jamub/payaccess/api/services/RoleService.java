@@ -59,7 +59,7 @@ public class RoleService {
             UserRole.valueOf(userRole);
             List<UserRolePermission> list = permissionList.stream().map(p -> {
                 String description = "Map Permission to Role - " + userRole + " to " + p;
-                System.out.println("" + userRole + " ... " + p);
+                log.info("" + userRole + " ... " + p);
 //                UserRolePermission urp = roleDao.getUserRolePermissionByRoleAndPermission(userRole, p);
 //                if(urp==null)
 //                {
@@ -93,5 +93,9 @@ public class RoleService {
 
     public List<UserRolePermission> getUserRolePermissionList(Integer pageNumber, Integer rowCount) {
         return roleDao.getUserRolePermissionList(pageNumber, rowCount);
+    }
+
+    public List<UserRolePermission> getUserRolePermissionListByRoleName(Integer pageNumber, Integer rowCount, String roleName) {
+        return roleDao.getPermissionsByRole(pageNumber, rowCount, roleName);
     }
 }

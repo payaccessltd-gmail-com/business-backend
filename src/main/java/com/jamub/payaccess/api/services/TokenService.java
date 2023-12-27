@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jamub.payaccess.api.providers.TokenProvider;
 import com.jamub.payaccess.api.models.User;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.*;
@@ -10,6 +11,7 @@ import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +45,10 @@ public class TokenService {
     private User user;
     private String account = "unknown";
     private String token = "unknown";
+
+
+    @Autowired
+    TokenProvider tokenProvider;
     
     private RSAKey getPublicKey(String certificateFile) {
         RSAKey publicKey = null;
@@ -82,8 +88,32 @@ public class TokenService {
         }
         return jwk;
     }
-    
+
+
+
+
     public User getUserFromToken(HttpServletRequest request) throws JsonProcessingException {
+        Enumeration<String> headers = request.getHeaderNames();
+        while(headers.hasMoreElements()) {
+            String key = headers.nextElement();
+            if(key.trim().equalsIgnoreCase("Authorization")) {
+                String authorizationHeader = request.getHeader(key);
+                if(!authorizationHeader.isEmpty()) {
+                    String[] tokenData = authorizationHeader.split(" ");
+                    if(tokenData.length == 2 && tokenData[0].trim().equalsIgnoreCase("Bearer")) {
+                        token = tokenData[1];
+                        LOG.info("Received token: " + token);
+                        break;
+                    }
+                }
+            }
+        }
+
+        User authenticatedUser = tokenProvider.getUserFromToken(token);
+        LOG.info("authenticatedUser.....{}" + authenticatedUser);
+        return authenticatedUser;
+    }
+    public User getUserFromTokenOldVersion(HttpServletRequest request) throws JsonProcessingException {
         Enumeration<String> headers = request.getHeaderNames();
         while(headers.hasMoreElements()) {
             String key = headers.nextElement();

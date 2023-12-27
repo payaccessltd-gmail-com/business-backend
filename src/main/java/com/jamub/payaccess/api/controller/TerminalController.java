@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,6 +66,7 @@ public class TerminalController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_CREATE_TERMINAL_REQUEST')")
     @RequestMapping(value = "/create-terminal-request", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     public ResponseEntity createTerminalRequest(@RequestBody @Valid TerminalOrderRequest terminalOrderRequest,
@@ -105,6 +107,7 @@ public class TerminalController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_APPROVE_TERMINAL_REQUEST')")
     @RequestMapping(value = "/approve-terminal-request/{terminalRequestId}/{acquirerId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Approve Terminal Request", response = ResponseEntity.class)
@@ -265,6 +268,7 @@ public class TerminalController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_DELETE_TERMINAL_REQUEST')")
     @RequestMapping(value = "/delete-terminal-request", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Delete Terminal Request", response = ResponseEntity.class)
@@ -314,6 +318,7 @@ public class TerminalController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_TERMINAL_REQUEST')")
     @RequestMapping(value = "/filter-terminal-request", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List terminal Request using filters", response = ResponseEntity.class)
@@ -372,6 +377,7 @@ public class TerminalController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_TERMINAL_REQUEST')")
     @RequestMapping(value = "/get-terminal-request/{terminalRequestId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get Terminal Request details", response = ResponseEntity.class)
@@ -384,9 +390,9 @@ public class TerminalController {
     public ResponseEntity getTerminalRequest(@PathVariable Long terminalRequestId,
                                                 HttpServletRequest request,
                                                 HttpServletResponse response) throws JsonProcessingException {
-        System.out.println("terminalRequestId");
+        logger.info("terminalRequestId");
 
-        System.out.println("terminalRequestId..." + terminalRequestId);
+        logger.info("terminalRequestId..." + terminalRequestId);
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -413,6 +419,7 @@ public class TerminalController {
     }
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_TERMINAL_REQUEST')")
     @RequestMapping(value = {"/get-terminal-requests", "/get-terminal-requests/{pageNumber}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List terminal requests", response = ResponseEntity.class)
@@ -439,6 +446,7 @@ public class TerminalController {
     }
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_TERMINAL')")
     @RequestMapping(value = {"/get-terminals", "/get-terminals/{pageNumber}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List terminals", response = ResponseEntity.class)
@@ -467,6 +475,7 @@ public class TerminalController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_TERMINAL')")
     @RequestMapping(value = {"/search-terminals"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Filter for terminals", response = ResponseEntity.class)
@@ -518,6 +527,7 @@ public class TerminalController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_DISAPPROVE_TERMINAL_REQUEST')")
     @RequestMapping(value = "/disapprove-terminal-request/{terminalRequestId}/{acquirerId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Disapprove Terminal requests", response = ResponseEntity.class)

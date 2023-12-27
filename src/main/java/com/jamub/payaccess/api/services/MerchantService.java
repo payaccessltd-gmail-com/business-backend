@@ -751,4 +751,8 @@ public class MerchantService {
     public List<CountryState> getStatesByCountry(String country) {
         return this.merchantDao.getStatesByCountry(country);
     }
+
+    public List<AuthMerchantData> getMerchantIdsByUsername(String username) {
+        return this.merchantDao.getMerchantIdsByUsername(username);
+    }
 }

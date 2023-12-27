@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -68,6 +69,7 @@ public class MerchantController {
 
     @CrossOrigin
     //ADD_NEW_MERCHANT
+    @PreAuthorize("hasRole('ROLE_ADD_NEW_MERCHANT')")
     @RequestMapping(value = "/add-new-merchant-to-existing-user", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Add Merchant to Existing User Profile", response = ResponseEntity.class)
@@ -121,6 +123,7 @@ public class MerchantController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-about-business", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchants About Business", response = ResponseEntity.class)
@@ -190,7 +193,7 @@ public class MerchantController {
 
 
     @CrossOrigin
-    //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-country", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchants Country", response = ResponseEntity.class)
@@ -246,7 +249,7 @@ public class MerchantController {
 
 
     @CrossOrigin
-    //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-payaccess-usage/{payAccessUse}/{merchantId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update PayAccess Usage By Merchant", response = ResponseEntity.class)
@@ -302,7 +305,7 @@ public class MerchantController {
 
 
     @CrossOrigin
-    //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-bio-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
@@ -383,7 +386,7 @@ public class MerchantController {
     }
 
     @CrossOrigin
-    //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-kyc", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
@@ -476,7 +479,7 @@ public class MerchantController {
 
 
     @CrossOrigin
-    //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-business-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
@@ -614,7 +617,7 @@ public class MerchantController {
 
 
     @CrossOrigin
-    //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/update-merchant-business-bank-account-data", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Bank Account Info", response = ResponseEntity.class)
@@ -660,7 +663,7 @@ public class MerchantController {
 
 
     @CrossOrigin
-    //UPDATE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT')")
     @RequestMapping(value = "/request-merchant-approval/{merchantCode}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Request Approval From Admin For Merchant profile", response = ResponseEntity.class)
@@ -681,9 +684,7 @@ public class MerchantController {
             payAccessResponse.setMessage("Authorization not granted. Token expired");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(payAccessResponse);
         }
-        System.out.println("merchantCode");
 
-        System.out.println("merchantCode..." + merchantCode);
 
         return merchantService.requestMerchantApproval(merchantCode, authenticatedUser);
     }
@@ -691,6 +692,7 @@ public class MerchantController {
 
     @CrossOrigin
     //VIEW_MERCHANT
+    @PreAuthorize("hasRole('ROLE_VIEW_MERCHANT')")
     @RequestMapping(value = "/get-merchant-details/{merchantCode}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get Merchant Details", response = ResponseEntity.class)
@@ -711,9 +713,9 @@ public class MerchantController {
             payAccessResponse.setMessage("Authorization not granted. Token expired");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(payAccessResponse);
         }
-        System.out.println("merchantCode");
+        logger.info("merchantCode");
 
-        System.out.println("merchantCode..." + merchantCode);
+        logger.info("merchantCode..." + merchantCode);
 
         List<?> merchantDetails = merchantService.getMerchantDetails(merchantCode);
         if(merchantDetails.get(0)==null)
@@ -733,6 +735,7 @@ public class MerchantController {
 
     @CrossOrigin
     //APPROVE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_APPROVE_MERCHANT')")
     @RequestMapping(value = "/approve-merchant", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Approve Merchant", response = ResponseEntity.class)
@@ -775,6 +778,7 @@ public class MerchantController {
 
     @CrossOrigin
     //DISAPPROVE_MERCHANT
+    @PreAuthorize("hasRole('ROLE_DISAPPROVE_MERCHANT')")
     @RequestMapping(value = "/disapprove-merchant", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Disapprove Merchant", response = ResponseEntity.class)
@@ -816,6 +820,7 @@ public class MerchantController {
 
     @CrossOrigin
     //UPDATE_MERCHANT_STATUS
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT_STATUS')")
     @RequestMapping(value = "/update-merchant-status", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Status", response = ResponseEntity.class)
@@ -862,6 +867,7 @@ public class MerchantController {
 
     @CrossOrigin
     //VIEW_MERCHANT
+    @PreAuthorize("hasRole('ROLE_VIEW_MERCHANT')")
     @RequestMapping(value = {"/get-merchants/{rowCount}", "/get-merchants/{rowCount}/{pageNumber}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List Merchants", response = ResponseEntity.class)
@@ -893,6 +899,7 @@ public class MerchantController {
 
     @CrossOrigin
     //REVIEW_MERCHANT_STATUS
+    @PreAuthorize("hasRole('ROLE_REVIEW_MERCHANT_STATUS')")
     @RequestMapping(value = "/review-merchant-status", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Review Merchant & Update Status (Maker-Checker)", response = ResponseEntity.class)
@@ -1035,6 +1042,7 @@ public class MerchantController {
 
     @CrossOrigin
     //VIEW_MERCHANT_REVIEW
+    @PreAuthorize("hasRole('ROLE_VIEW_MERCHANT_REVIEW')")
     @RequestMapping(value = {"/get-merchant-approval/{merchantCode}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List all approvals/disapprovals of Merchants From Review", response = ResponseEntity.class)
@@ -1065,6 +1073,7 @@ public class MerchantController {
 
     @CrossOrigin
     //SWITCH_API_MODE
+    @PreAuthorize("hasRole('ROLE_SWITCH_API_MODE')")
     @RequestMapping(value = {"/switch-api-mode/{merchantCode}"}, method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Switch API Mode (Live/Test Mode)", response = ResponseEntity.class)

@@ -82,9 +82,6 @@ public class Account implements Serializable {
 			Double amount) throws Exception
 	{
 		synchronized (this.id) {
-			System.out.println(this.id);
-			System.out.println(this.accountBalance);
-			System.out.println(amount);
 			this.accountBalance= 
 					(this.accountBalance==null ? 0 : this.accountBalance)+
 					amount;

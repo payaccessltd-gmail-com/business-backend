@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.enums.Permission;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.UserRolePermission;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +27,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -45,6 +49,7 @@ public class RoleController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_ROLE')")
     @RequestMapping(value = "/get-role-list", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List Roles", response = ResponseEntity.class)
@@ -58,6 +63,7 @@ public class RoleController {
                                         HttpServletResponse response) throws JsonProcessingException {
 
 
+
         PayAccessResponse payAccessResponse = new  PayAccessResponse();
         payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
         payAccessResponse.setMessage("Roles listed");
@@ -69,6 +75,7 @@ public class RoleController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_PERMISSION')")
     @RequestMapping(value = "/get-permission-list", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List Permissions", response = ResponseEntity.class)
@@ -96,6 +103,7 @@ public class RoleController {
 
     @CrossOrigin
     //CREATE_ROLE_PERMISSION
+    @PreAuthorize("hasRole('ROLE_CREATE_NEW_ACQUIRER')")
     @RequestMapping(value = "/create-role-permissions", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create Role Permission", response = ResponseEntity.class)
@@ -157,6 +165,7 @@ public class RoleController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_ROLE_PERMISSION')")
     @RequestMapping(value = "/get-user-role-permission-list/{rowCount}/{pageNumber}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get List of Role Permissions", response = ResponseEntity.class)
@@ -168,7 +177,8 @@ public class RoleController {
     })
     public ResponseEntity getUserRolePermissionList(
             @PathVariable(required = true) Integer rowCount,
-            @PathVariable(required = false) Integer pageNumber,
+            @PathVariable(required = true) Integer pageNumber,
+            @RequestParam(required = false) Optional<String> roleName,
             HttpServletRequest request,
             HttpServletResponse response) throws JsonProcessingException {
 
@@ -183,7 +193,13 @@ public class RoleController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(payAccessResponse);
         }
 
-        List<UserRolePermission> userRolePermissionList = roleService.getUserRolePermissionList(pageNumber, rowCount);
+        List<UserRolePermission> userRolePermissionList = new ArrayList<UserRolePermission>();
+
+        if(roleName.isPresent() && roleName.get()!=null)
+            userRolePermissionList = roleService.getUserRolePermissionListByRoleName(pageNumber, rowCount, roleName.get());
+        else
+            userRolePermissionList = roleService.getUserRolePermissionList(pageNumber, rowCount);
+
 
         if(userRolePermissionList!=null && !userRolePermissionList.isEmpty())
         {

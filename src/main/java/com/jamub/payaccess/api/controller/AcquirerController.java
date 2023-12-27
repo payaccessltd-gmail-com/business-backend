@@ -1,33 +1,35 @@
 package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jamub.payaccess.api.dao.util.UtilityHelper;
+import com.jamub.payaccess.api.models.*;
+import com.jamub.payaccess.api.models.response.AuthenticateResponse;
+import com.jamub.payaccess.api.providers.TokenProvider;
 import com.jamub.payaccess.api.enums.ApplicationAction;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
-import com.jamub.payaccess.api.models.Acquirer;
-import com.jamub.payaccess.api.models.Bank;
-import com.jamub.payaccess.api.models.ErrorMessage;
-import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.CreateAcquirerRequest;
+import com.jamub.payaccess.api.models.request.LoginRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
-import com.jamub.payaccess.api.services.AcquirerService;
-import com.jamub.payaccess.api.services.BankService;
-import com.jamub.payaccess.api.services.MerchantService;
-import com.jamub.payaccess.api.services.TokenService;
+import com.jamub.payaccess.api.services.*;
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,11 +47,90 @@ public class AcquirerController {
     AcquirerService acquirerService;
 
     @Autowired
+    MerchantService merchantService;
+
+    @Autowired
     BankService bankService;
+
+    @Autowired
+    UserService userService;
+//
+//    @Autowired
+//    private BCryptPasswordEncoder bcryptEncoder;
+
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private TokenProvider jwtTokenUtil;
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
+    public ResponseEntity<?> generateToken(@RequestBody LoginRequest loginUser) throws AuthenticationException, JsonProcessingException {
+
+        logger.info("111111111111....{}", loginUser.getUsername());
+//        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUser.getEmailAddress(), loginUser.getPassword());
+//        logger.info("{}", authenticationToken.getPrincipal());
+//        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+//        logger.info("{}", authentication.isAuthenticated());
+        logger.info("2222....{}", loginUser.getPassword());
+        final Authentication authentication = authenticationManager.authenticate(
+//                new AuthenticationManagerCustom(loginUser.getEmailAddress(), loginUser.getPassword())
+//                new PayAccessAuthenticationProvider()
+
+                new UsernamePasswordAuthenticationToken(
+                        loginUser.getUsername(),
+                        loginUser.getPassword()
+                )
+        );
+
+        logger.info("{}", authentication.isAuthenticated());
+        logger.info("{}", authentication.getPrincipal());
+//        logger.info("{}>>>>", loginUser.getEmailAddress());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        final String token = jwtTokenUtil.generateToken(authentication);
+        logger.info("token...{}", token);
+
+
+        List<AuthMerchantData> merchantList = merchantService.getMerchantIdsByUsername(loginUser.getUsername());
+        AuthenticateResponse authenticateResponse = new AuthenticateResponse();
+        authenticateResponse.setToken(token);
+        authenticateResponse.setSubject(loginUser.getUsername());
+        authenticateResponse.setMerchantList(merchantList);
+
+
+        return ResponseEntity.ok(authenticateResponse);
+    }
+
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_CREATE_NEW_ACQUIRER')")
+    @RequestMapping(value = "/create-user", method = RequestMethod.POST)
+    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
+    public ResponseEntity<?> createUser(@RequestBody @Valid User loginUser,
+                                        BindingResult bindingResult,
+                                        HttpServletRequest request,
+                                        HttpServletResponse response) throws AuthenticationException {
+
+        logger.info("{}...username", 12);
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+        String username = authentication.getName();
+        logger.info("{}...username", username);
+//        @RequestBody User loginUser
+//        String password = "password";
+////        password = bcryptEncoder.encode(password);
+//        logger.info("{}...password", password);
+//        return userService.createNewUserV2(loginUser, password);
+        return ResponseEntity.ok("token");
+    }
+
+    @CrossOrigin
     //CREATE_NEW_ACQUIRER
+    @PreAuthorize("hasRole('ROLE_CREATE_NEW_ACQUIRER')")
     @RequestMapping(value = "/create-new-acquirer", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create a new Acquirer", response = ResponseEntity.class)
@@ -121,6 +202,7 @@ public class AcquirerController {
 
     @CrossOrigin
     //VIEW_ACQUIRERS
+    @PreAuthorize("hasRole('ROLE_VIEW_ACQUIRERS')")
     @RequestMapping(value = "/get-acquirers/{pageNumber}/{pageSize}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get List of Acquirer", response = ResponseEntity.class)

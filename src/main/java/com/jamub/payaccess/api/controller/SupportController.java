@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +45,7 @@ public class SupportController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_CREATE_CONTACT_US_MESSAGE')")
     //CREATE_CONTACT_US_MESSAGE
     @RequestMapping(value = "/create-contact-us-message", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -126,6 +128,7 @@ public class SupportController {
 
     @CrossOrigin
     //CREATE_FEEDBACK_MESSAGE
+    @PreAuthorize("hasRole('ROLE_CREATE_FEEDBACK_MESSAGE')")
     @RequestMapping(value = "/create-feedback-message", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")

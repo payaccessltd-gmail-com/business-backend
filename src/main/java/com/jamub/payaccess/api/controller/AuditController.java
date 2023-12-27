@@ -3,6 +3,7 @@ package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.enums.Permission;
 import com.jamub.payaccess.api.models.Merchant;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.AuditTrailFilterRequest;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +36,7 @@ public class AuditController {
     @Autowired
     AuditTrailService auditTrailService;
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_AUDIT_TRAILS')")
     @RequestMapping(value = "/get-audit-trails/{pageNumber}/{pageSize}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get List of Audit Trails", response = ResponseEntity.class)
@@ -49,6 +52,7 @@ public class AuditController {
             AuditTrailFilterRequest auditTrailFilterRequest,
             HttpServletRequest request,
             HttpServletResponse response) throws JsonProcessingException {
+
 
         User authenticatedUser = tokenService.getUserFromToken(request);
         if(authenticatedUser!=null)

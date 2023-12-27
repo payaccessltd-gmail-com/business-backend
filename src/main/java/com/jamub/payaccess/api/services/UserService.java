@@ -10,10 +10,7 @@ import com.jamub.payaccess.api.dao.UserDao;
 import com.jamub.payaccess.api.dto.MerchantDTO;
 import com.jamub.payaccess.api.dto.UserDTO;
 import com.jamub.payaccess.api.enums.*;
-import com.jamub.payaccess.api.models.Customer;
-import com.jamub.payaccess.api.models.Merchant;
-import com.jamub.payaccess.api.models.Transaction;
-import com.jamub.payaccess.api.models.User;
+import com.jamub.payaccess.api.models.*;
 import com.jamub.payaccess.api.models.request.*;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.sun.mail.smtp.SMTPTransport;
@@ -844,7 +841,7 @@ public class UserService {
         if(existingUser!=null)
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
-            payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Status updated successfully");
             return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
@@ -853,5 +850,27 @@ public class UserService {
         payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
         payAccessResponse.setMessage("Status update was not successful");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+    }
+
+    public ResponseEntity<?> createNewUserV2(User loginUser, String password) {
+        User user = userDao.createNewUserV2(loginUser, password);
+        PayAccessResponse payAccessResponse = new PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+        payAccessResponse.setMessage("Status updated successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+    }
+
+
+
+
+
+    public List<UserRolePermission> getPermissionsByRole(String userRole)
+    {
+        List<UserRolePermission> userRolePermissionList = userDao.getPermissionsByRole(userRole);
+
+        if(userRolePermissionList.isEmpty())
+            return null;
+
+        return userRolePermissionList;
     }
 }

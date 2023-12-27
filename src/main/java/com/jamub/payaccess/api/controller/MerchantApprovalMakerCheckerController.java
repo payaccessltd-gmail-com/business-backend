@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +40,7 @@ public class MerchantApprovalMakerCheckerController {
 
     @CrossOrigin
     //CREATE_MAKER_CHECKER
+    @PreAuthorize("hasRole('ROLE_CREATE_MAKER_CHECKER')")
     @RequestMapping(value = "/create-maker-checker", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create Maker-Checker", response = ResponseEntity.class)
@@ -109,6 +111,7 @@ public class MerchantApprovalMakerCheckerController {
 
     @CrossOrigin
     //VIEW_MAKER_CHECKER
+    @PreAuthorize("hasRole('ROLE_VIEW_MAKER_CHECKER')")
     @RequestMapping(value = "/get-maker-checker-by-user/{emailAddress}/{makerCheckerType}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get List of Maker Checker By User Email Address", response = ResponseEntity.class)
@@ -177,6 +180,7 @@ public class MerchantApprovalMakerCheckerController {
 
     @CrossOrigin
     //VIEW_MAKER_CHECKER
+    @PreAuthorize("hasRole('ROLE_VIEW_MAKER_CHECKER')")
     @RequestMapping(value = {"/get-maker-checker-list/{rowCount}/{pageNumber}/{makerCheckerType}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get List of Maker-Checker By Type", response = ResponseEntity.class)

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +51,7 @@ public class TicketController {
 
     @CrossOrigin
     //CREATE_TICKET
+    @PreAuthorize("hasRole('ROLE_CREATE_TICKET')")
     @RequestMapping(value = "/create-transaction-ticket", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
@@ -110,6 +112,7 @@ public class TicketController {
 
     @CrossOrigin
     //ASSIGN_TICKET
+    @PreAuthorize("hasRole('ROLE_ASSIGN_TICKET')")
     @RequestMapping(value = "/assign-transaction-ticket", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Assign transaction ticket", response = ResponseEntity.class)
@@ -189,6 +192,7 @@ public class TicketController {
 
     @CrossOrigin
     //CLOSE_TICKET
+    @PreAuthorize("hasRole('ROLE_CLOSE_TICKET')")
     @RequestMapping(value = "/close-ticket", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Close transaction ticket", response = ResponseEntity.class)
@@ -254,7 +258,8 @@ public class TicketController {
 
 
     @CrossOrigin
-    //VIEW_TICKETS
+    //VIEW_TICKET
+    @PreAuthorize("hasRole('ROLE_VIEW_TICKET')")
     @RequestMapping(value = {"/get-tickets/{merchantId}/{rowCount}/{pageNumber}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List transaction tickets", response = ResponseEntity.class)

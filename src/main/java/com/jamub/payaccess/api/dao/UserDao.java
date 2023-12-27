@@ -9,6 +9,7 @@ import com.jamub.payaccess.api.enums.MerchantStatus;
 import com.jamub.payaccess.api.enums.UserStatus;
 import com.jamub.payaccess.api.models.Customer;
 import com.jamub.payaccess.api.models.User;
+import com.jamub.payaccess.api.models.UserRolePermission;
 import com.jamub.payaccess.api.models.request.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.mindrot.jbcrypt.BCrypt;
@@ -53,6 +54,7 @@ public class UserDao implements Dao<User>{
     private SimpleJdbcCall handleSetUserPassword;
     private SimpleJdbcCall handleUpdateUser;
     private SimpleJdbcCall handleUpdateUserStatus;
+    private SimpleJdbcCall getPermissionsByRole;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -138,6 +140,12 @@ public class UserDao implements Dao<User>{
                 .withProcedureName("UpdateUserStatus")
                 .returningResultSet("#result-set-1",
                         RowMapper.newInstance(User.class));
+
+        getPermissionsByRole = new SimpleJdbcCall(jdbcTemplate)
+//                .withFunctionName("GetUserByEmailAddress")
+                .withProcedureName("GetUserRolePermissionByRole")
+                .returningResultSet("#result-set-1",
+                        RowMapper.newInstance(UserRolePermission.class));
     }
 
     @Override
@@ -200,6 +208,7 @@ public class UserDao implements Dao<User>{
 
 
     public List<User> getUserByEmailAddress(String emailAddress) {
+        logger.info("{}", emailAddress);
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("emailAddress", emailAddress)
                 .addValue("emailAddress", emailAddress);
@@ -434,5 +443,42 @@ public class UserDao implements Dao<User>{
         List<User> result = (List<User>) m.get("#result-set-1");
         User user = result!=null && !result.isEmpty() ? result.get(0) : null;
         return user;
+    }
+
+    public User createNewUserV2(User loginUser, String bcryptPassword) {
+//        String bcryptPassword = UtilityHelper.generateBCryptPassword(password);
+//        logger.info("merchantSignUpRequest.isSoftwareDeveloper()...{}", merchantSignUpRequest.isSoftwareDeveloper());
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("emailAddress", loginUser.getEmailAddress())
+                .addValue("firstName", loginUser.getFirstName())
+                .addValue("lastName", loginUser.getLastName())
+                .addValue("userRole", loginUser.getUserRole().name())
+                .addValue("password", bcryptPassword)
+                .addValue("userStatus", UserStatus.ACTIVE.name())
+                .addValue("carriedOutByUserFullName", "John Doe")
+                .addValue("carriedOutByUserId", 1)
+                .addValue("userAction", ApplicationAction.CREATE_NEW_ADMIN_USER)
+                .addValue("description", "Test")
+                .addValue("ipAddress", "ttt")
+                .addValue("objectClassReference", User.class.getCanonicalName());
+
+        Map<String, Object> m = handleSaveAdminUser.execute(in);
+        logger.info("{}", m);
+        List<User> result = (List<User>) m.get("#result-set-1");
+        return result.get(0);
+    }
+
+
+
+
+
+
+    public List<UserRolePermission> getPermissionsByRole(String userRole) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("userRole", userRole);
+        Map<String, Object> m = getPermissionsByRole.execute(in);
+        logger.info("{}", m);
+        List<UserRolePermission> result = (List<UserRolePermission>) m.get("#result-set-1");
+        return result;
     }
 }

@@ -27,6 +27,7 @@ public class RoleDao implements Dao<Bank>{
     private SimpleJdbcCall createNewUserRolePermission;
     private SimpleJdbcCall getUserRolePermissionList;
     private SimpleJdbcCall getUserRolePermissionByRoleAndPermission;
+    private SimpleJdbcCall getPermissionsByRole;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -46,6 +47,11 @@ public class RoleDao implements Dao<Bank>{
 
         getUserRolePermissionByRoleAndPermission = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("GetUserRolePermissionByRoleAndPermission")
+                .returningResultSet("#result-set-1",
+                        MerchantRowMapper.newInstance(UserRolePermission.class));
+
+        getPermissionsByRole = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("GetUserRolePermissionByRole")
                 .returningResultSet("#result-set-1",
                         MerchantRowMapper.newInstance(UserRolePermission.class));
     }
@@ -117,5 +123,17 @@ public class RoleDao implements Dao<Bank>{
         List<UserRolePermission> result = (List<UserRolePermission>) m.get("#result-set-1");
 
         return result!=null && !result.isEmpty() ? result.get(0) : null;
+    }
+
+
+    public List<UserRolePermission> getPermissionsByRole(Integer pageNumber, Integer rowCount, String userRole) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("userRole", userRole)
+                .addValue("pageNumber", pageNumber)
+                .addValue("rowCount", rowCount);
+        Map<String, Object> m = getPermissionsByRole.execute(in);
+        logger.info("{}", m);
+        List<UserRolePermission> result = (List<UserRolePermission>) m.get("#result-set-1");
+        return result;
     }
 }

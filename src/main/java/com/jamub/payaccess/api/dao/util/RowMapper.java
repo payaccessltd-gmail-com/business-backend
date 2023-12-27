@@ -17,8 +17,8 @@ public class RowMapper extends BeanPropertyRowMapper {
     @Override
     protected Object getColumnValue(ResultSet rs, int index, PropertyDescriptor pd) throws SQLException {
         Class<?> type = pd.getPropertyType();
-        System.out.println(pd.getName());
-        System.out.println(pd.getDisplayName());
+        logger.info(pd.getName());
+        logger.info(pd.getDisplayName());
         Object value = null;
         if (Map.class.equals(type)) {
             String values = rs.getString(index);

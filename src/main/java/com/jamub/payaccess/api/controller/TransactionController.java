@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,6 +50,7 @@ public class TransactionController {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_TRANSACTION')")
     @RequestMapping(value = {"/get-transactions/{rowCount}", "/get-transactions/{rowCount}/{pageNumber}"}, method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List transactions", response = ResponseEntity.class)
@@ -94,6 +96,7 @@ public class TransactionController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_TRANSACTION')")
     @RequestMapping(value = {"/get-transactions-by-merchant-id/{merchantId}/{rowCount}", "/get-transactions-by-merchant-id/{merchantId}/{rowCount}/{pageNumber}"}, method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List merchant transactions", response = ResponseEntity.class)
@@ -136,6 +139,7 @@ public class TransactionController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_DEBIT_CARD')")
     @RequestMapping(value="/debit-card", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Debit Card", response = ResponseEntity.class)
     @ApiResponses(value = {
@@ -226,6 +230,7 @@ public class TransactionController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_TRANSACTION')")
     @RequestMapping(value="/get-transaction-details/{merchantCode}/{orderRef}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get details of a transaction using the Order ref", response = ResponseEntity.class)
@@ -282,6 +287,7 @@ public class TransactionController {
     }
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_AUTHORIZE_CARD_PAYMENT')")
     @RequestMapping(value="/authorize-card-payment-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Authorize Card Payment Using OTP", response = ResponseEntity.class)
     @ApiResponses(value = {

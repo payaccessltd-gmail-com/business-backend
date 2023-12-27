@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,6 +64,7 @@ public class UserController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_CREATE_ADMIN_USER')")
     @RequestMapping(value = "/new-admin-user", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create new Administrator", response = ResponseEntity.class)
@@ -124,6 +126,7 @@ public class UserController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_UPDATE_ADMIN_USER')")
     @RequestMapping(value = "/update-admin-user", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Administrator profile", response = ResponseEntity.class)
@@ -192,7 +195,7 @@ public class UserController {
 
     @CrossOrigin
     @RequestMapping(value = "/new-signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "New User Sign Up", response = ResponseEntity.class)
+    @ApiOperation(value = "New Merchant Sign Up", response = ResponseEntity.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successful"),
             @ApiResponse(code = 400, message = "Validation of request parameters failed"),
@@ -247,6 +250,7 @@ public class UserController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_USER')")
     @RequestMapping(value = "/get-user-details", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get User details", response = ResponseEntity.class)
@@ -294,6 +298,7 @@ public class UserController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_UPDATE_USER')")
     @RequestMapping(value = "/update-biodata", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Users Bio-data", response = ResponseEntity.class)
@@ -377,6 +382,7 @@ public class UserController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VIEW_USER')")
     @RequestMapping(value = {"/list-users/{rowCount}", "/list-users/{rowCount}/{pageNumber}"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "List users", response = ResponseEntity.class)
@@ -421,6 +427,7 @@ public class UserController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_GENERATE_OTP_FOR_USER')")
     @RequestMapping(value = "/generate-user-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Generate OTP for User", response = ResponseEntity.class)
@@ -460,6 +467,7 @@ public class UserController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_VALIDATE_OTP_FOR_USER')")
     @RequestMapping(value = "/validate-user-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Validate OTP of User", response = ResponseEntity.class)
@@ -805,6 +813,7 @@ public class UserController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_UPDATE_USER')")
     @RequestMapping(value = "/update-user-password", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Users Password", response = ResponseEntity.class)
@@ -861,6 +870,7 @@ public class UserController {
 
 
     @CrossOrigin
+    @PreAuthorize("hasRole('ROLE_UPDATE_USER_STATUS')")
     @RequestMapping(value="/update-user-status", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Users status", response = ResponseEntity.class)

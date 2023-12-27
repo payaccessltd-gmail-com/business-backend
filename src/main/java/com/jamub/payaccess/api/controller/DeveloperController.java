@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,6 +50,7 @@ public class DeveloperController {
 
     @CrossOrigin
     //GENERATE_MERCHANT_KEYS
+    @PreAuthorize("hasRole('ROLE_GENERATE_MERCHANT_KEYS')")
     @RequestMapping(value = "/generate-new-merchant-keys", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Generate Merchant Keys", response = ResponseEntity.class)
@@ -117,6 +119,7 @@ public class DeveloperController {
 
     @CrossOrigin
     //VIEW_MERCHANT_KEYS
+    @PreAuthorize("hasRole('ROLE_VIEW_MERCHANT_KEYS')")
     @RequestMapping(value = "/get-merchant-keys/{merchantId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get List of Merchant Keys", response = ResponseEntity.class)
@@ -163,6 +166,7 @@ public class DeveloperController {
 
     @CrossOrigin
     //UPDATE_MERCHANT_CALLBACK_WEBHOOK
+    @PreAuthorize("hasRole('ROLE_UPDATE_MERCHANT_CALLBACK_WEBHOOK')")
     @RequestMapping(value = "/update-merchant-callback-webhook", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Update Merchant Callback Webhook", response = ResponseEntity.class)

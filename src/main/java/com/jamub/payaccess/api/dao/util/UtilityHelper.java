@@ -139,8 +139,8 @@ public class UtilityHelper {
         byte[] data = DatatypeConverter.parseBase64Binary(imageString);
         String fileName = qrTrackingNumber + ".png";
         String path = qrFileLocation + File.separator + fileName;
-        System.out.println("Path......");
-        System.out.println(path);
+        logger.info("Path......");
+        logger.info(path);
 
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
@@ -151,7 +151,6 @@ public class UtilityHelper {
         BitMatrix bitMatrix = barcodeWriter.encode(encData, BarcodeFormat.QR_CODE, 200, 200);
 
         BufferedImage bi = MatrixToImageWriter.toBufferedImage(bitMatrix);
-        System.out.println(bi.getData());
         File outputfile = new File(path);
 
         ImageIO.write(bi, "PNG", outputfile);
