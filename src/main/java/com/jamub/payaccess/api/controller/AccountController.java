@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.Account;
 import com.jamub.payaccess.api.models.Customer;
 import com.jamub.payaccess.api.models.ErrorMessage;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/accounts")
-@Api(produces = "application/json", value = "Operations pertaining to Wallets. Not Yet Implemented")
+@Api(produces = "application/json", description = "Operations pertaining to Wallets. Not Yet Implemented! Implementation in Wallet Phase - Phase 2")
 public class AccountController {
 
     @Autowired
@@ -92,7 +93,7 @@ public class AccountController {
     public ResponseEntity updateMerchantBioData(@RequestBody @Valid CustomerBioDataUpdateRequest customerBioDataUpdateRequest,
                                                 BindingResult bindingResult,
                                                    HttpServletRequest request,
-                                                   HttpServletResponse response) throws JsonProcessingException {
+                                                   HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -130,7 +131,7 @@ public class AccountController {
     public ResponseEntity createCustomerAccount(@RequestBody @Valid CustomerPinUpdateRequest customerPinUpdateRequest,
                                                 BindingResult bindingResult,
                                                         HttpServletRequest request,
-                                                        HttpServletResponse response) throws JsonProcessingException, NoSuchAlgorithmException {
+                                                        HttpServletResponse response) throws JsonProcessingException, NoSuchAlgorithmException, PayAccessAuthException {
 
 
         if (bindingResult.hasErrors()) {

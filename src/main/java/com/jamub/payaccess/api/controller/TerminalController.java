@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.*;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.*;
 import com.jamub.payaccess.api.models.request.*;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/terminal")
-@Api(produces = "application/json", value = "Operations pertaining to Terminal Management")
+@Api(produces = "application/json", description = "Operations pertaining to Terminal Management")
 public class TerminalController {
 
     @Autowired
@@ -72,7 +73,7 @@ public class TerminalController {
     public ResponseEntity createTerminalRequest(@RequestBody @Valid TerminalOrderRequest terminalOrderRequest,
                                                 BindingResult bindingResult,
                                                     HttpServletRequest request,
-                                                    HttpServletResponse response) throws JsonProcessingException {
+                                                    HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         if (bindingResult.hasErrors()) {
@@ -121,7 +122,7 @@ public class TerminalController {
                                              @PathVariable Long acquirerId,
                                                  @RequestBody @Valid ApproveTerminalRequest approveTerminalRequest,
                                                  HttpServletRequest request,
-                                                 HttpServletResponse response) throws JsonProcessingException {
+                                                 HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -195,7 +196,7 @@ public class TerminalController {
                 createEmailDocumentRequest.setRecipients(recipient);
                 createEmailDocumentRequest.setAttachmentList(null);
                 createEmailDocumentRequest.setHtmlMessage(htmlMessage);
-                EmailDocument emailDocument = emailService.createEmailDocument(createEmailDocumentRequest, authenticatedUser, EmailDocumentPriorityLevel.LOW);
+//                EmailDocument emailDocument = emailService.createEmailDocument(createEmailDocumentRequest, authenticatedUser, EmailDocumentPriorityLevel.LOW);
 
 
                 if(!newTerminals.isEmpty()) {
@@ -211,7 +212,7 @@ public class TerminalController {
                         Message msg = new MimeMessage(session);
                         msg.setFrom(new InternetAddress("emailer@payaccess.com", "PayAccess"));
 
-                        InternetAddress[] addrs = InternetAddress.parse(emailDocument.getRecipients(), false);
+                        InternetAddress[] addrs = InternetAddress.parse(recipient, false);
                         msg.setRecipients(Message.RecipientType.TO, addrs);
 
                         msg.setSubject("Welcome to PayAccess");
@@ -230,8 +231,8 @@ public class TerminalController {
 
                         t.close();
 
-                        emailDocument.setEmailDocumentStatus(EmailDocumentStatus.SENT);
-                        emailService.updateEmailDocument(emailDocument);
+//                        emailDocument.setEmailDocumentStatus(EmailDocumentStatus.SENT);
+//                        emailService.updateEmailDocument(emailDocument);
                     }
                     catch(Exception e)
                     {
@@ -280,7 +281,7 @@ public class TerminalController {
     })
     public ResponseEntity deleteTerminalRequest(@RequestPart Long terminalRequestId,
                                              HttpServletRequest request,
-                                             HttpServletResponse response) throws JsonProcessingException {
+                                             HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -331,7 +332,7 @@ public class TerminalController {
     public ResponseEntity filterTerminalRequest(@RequestBody @Valid TerminalRequestSearchFilterRequest terminalRequestSearchFilterRequest,
                                                 BindingResult bindingResult,
                                            HttpServletRequest request,
-                                           HttpServletResponse response) throws JsonProcessingException {
+                                           HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         if (bindingResult.hasErrors()) {
@@ -389,7 +390,7 @@ public class TerminalController {
     })
     public ResponseEntity getTerminalRequest(@PathVariable Long terminalRequestId,
                                                 HttpServletRequest request,
-                                                HttpServletResponse response) throws JsonProcessingException {
+                                                HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
         logger.info("terminalRequestId");
 
         logger.info("terminalRequestId..." + terminalRequestId);
@@ -431,7 +432,7 @@ public class TerminalController {
     })
     public ResponseEntity getTerminalRequests(@PathVariable(required = false) Integer pageNumber,
                                          HttpServletRequest request,
-                                         HttpServletResponse response) throws JsonProcessingException {
+                                         HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -458,7 +459,7 @@ public class TerminalController {
     })
     public ResponseEntity getTerminals(@PathVariable(required = false) Integer pageNumber,
                                          HttpServletRequest request,
-                                         HttpServletResponse response) throws JsonProcessingException {
+                                         HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -487,7 +488,7 @@ public class TerminalController {
     })
     public ResponseEntity getTerminals(TerminalSearchFilterRequest terminalSearchFilterRequest,
                                           HttpServletRequest request,
-                                          HttpServletResponse response) throws JsonProcessingException {
+                                          HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -528,7 +529,7 @@ public class TerminalController {
 
     @CrossOrigin
     @PreAuthorize("hasRole('ROLE_DISAPPROVE_TERMINAL_REQUEST')")
-    @RequestMapping(value = "/disapprove-terminal-request/{terminalRequestId}/{acquirerId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/disapprove-terminal-request/{terminalRequestId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Disapprove Terminal requests", response = ResponseEntity.class)
     @ApiResponses(value = {
@@ -538,9 +539,8 @@ public class TerminalController {
             @ApiResponse(code = 500, message = "Application failed to process the request")
     })
     public ResponseEntity disapproveTerminalRequest(@PathVariable Long terminalRequestId,
-                                                 @PathVariable Long acquirerId,
                                                  HttpServletRequest request,
-                                                 HttpServletResponse response) throws JsonProcessingException {
+                                                 HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 

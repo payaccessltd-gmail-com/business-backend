@@ -14,6 +14,7 @@ public class AuthenticateResponse {
     private String subject;
     private List<AuthMerchantData> merchantList;
     private String token;
+    private String message;
 
 
 

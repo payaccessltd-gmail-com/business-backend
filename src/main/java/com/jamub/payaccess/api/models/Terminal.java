@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Table(name="terminals")
 public class Terminal implements Serializable {
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	Long id;
 	@Column(nullable = false)
 	Long merchantId;

@@ -88,6 +88,8 @@ public class Transaction implements Serializable {
     String redirectUrl;
     @Column(nullable = true)
     String switchTransactionRef;
+    @Column(nullable = true)
+    Boolean settled;
 
 
 

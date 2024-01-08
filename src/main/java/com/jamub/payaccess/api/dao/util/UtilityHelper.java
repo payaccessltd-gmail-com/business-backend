@@ -5,8 +5,17 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+//import com.itextpdf.text.BaseColor;
+//import com.itextpdf.text.Phrase;
+//import com.itextpdf.text.pdf.PdfPCell;
+//import com.itextpdf.text.pdf.PdfPTable;
 import com.jamub.payaccess.api.enums.BusinessCategory;
+import com.jamub.payaccess.api.enums.MerchantReviewStatus;
+import com.jamub.payaccess.api.enums.MerchantStage;
 import com.jamub.payaccess.api.enums.QRDataType;
+import com.jamub.payaccess.api.models.Merchant;
+import com.jamub.payaccess.api.models.MerchantApproval;
+import com.jamub.payaccess.api.models.request.MerchantReviewUpdateStatusRequest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.mindrot.jbcrypt.BCrypt;
@@ -31,6 +40,8 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.security.*;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class UtilityHelper {
 
@@ -169,4 +180,100 @@ public class UtilityHelper {
 
         return fileName;
     }
+
+    public static Boolean validateMerchantReview(Merchant merchantCheck, MerchantReviewUpdateStatusRequest merchantReviewUpdateStatusRequest) {
+        Boolean check = false;
+        switch(merchantCheck.getBusinessType())
+        {
+            case NGO_BUSINESS:
+                if(merchantCheck.getKycSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_KYC.name()))
+                    check= true;
+                else if(merchantCheck.getBusinessInfoSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_DATA.name()))
+                    check= true;
+                else if(merchantCheck.getPersonalInfoSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_BIO_DATA.name()))
+                    check= true;
+                else if(merchantCheck.getAccountInfoSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_ACCOUNT_DATA.name()))
+                    check= true;
+                break;
+            case INDIVIDUAL:
+                if(merchantCheck.getPersonalInfoSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_BIO_DATA.name()))
+                    check= true;
+                else if(merchantCheck.getBusinessInfoSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_DATA.name()))
+                    check= true;
+                else if(merchantCheck.getAccountInfoSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_ACCOUNT_DATA.name()))
+                    check= true;
+                break;
+            case REGISTERED_BUSINESS:
+                if(merchantCheck.getKycSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_KYC.name()))
+                    check= true;
+                else if(merchantCheck.getBusinessInfoSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_DATA.name()))
+                    check= true;
+                else if(merchantCheck.getPersonalInfoSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_BIO_DATA.name()))
+                    check= true;
+                else if(merchantCheck.getAccountInfoSet().equals(Boolean.TRUE) && merchantReviewUpdateStatusRequest.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_ACCOUNT_DATA.name()))
+                    check= true;
+                break;
+        }
+
+        return check;
+    }
+
+    public static Boolean checkIfMerchantValidForApproval(Merchant merchant, List<MerchantApproval> merchantApproval) {
+        Boolean check = false;
+        switch (merchant.getBusinessType())
+        {
+            case INDIVIDUAL:
+                List checkList = merchantApproval.stream().map(ma -> {
+                    return
+                            ((ma.getMerchantStage().equals(MerchantStage.MERCHANT_BIO_DATA) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)) ||
+                            (ma.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_DATA) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)) ||
+                            (ma.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_ACCOUNT_DATA) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)));
+                }).filter(t -> {
+                    return t.equals(Boolean.TRUE);
+                }).collect(Collectors.toList());
+                logger.info("1...{}", checkList);
+                check = checkList.size()==3;
+                break;
+            case REGISTERED_BUSINESS:
+                checkList = merchantApproval.stream().map(ma -> {
+                    return
+                            ((ma.getMerchantStage().equals(MerchantStage.MERCHANT_KYC) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)) ||
+                                    (ma.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_DATA) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)) ||
+                                    (ma.getMerchantStage().equals(MerchantStage.MERCHANT_BIO_DATA) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)) ||
+                                    (ma.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_ACCOUNT_DATA) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)));
+                }).filter(t -> {
+                    return t.equals(Boolean.TRUE);
+                }).collect(Collectors.toList());
+                logger.info("2...{}", checkList);
+                check = checkList.size()==4;
+                break;
+            case NGO_BUSINESS:
+                checkList = merchantApproval.stream().map(ma -> {
+                    return
+                            ((ma.getMerchantStage().equals(MerchantStage.MERCHANT_KYC) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)) ||
+                                    (ma.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_DATA) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)) ||
+                                    (ma.getMerchantStage().equals(MerchantStage.MERCHANT_BIO_DATA) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)) ||
+                                    (ma.getMerchantStage().equals(MerchantStage.MERCHANT_BUSINESS_ACCOUNT_DATA) && ma.getMerchantReviewStatus().equals(MerchantReviewStatus.APPROVED)));
+                }).filter(t -> {
+                    return t.equals(Boolean.TRUE);
+                }).collect(Collectors.toList());
+                logger.info("3...{}", checkList);
+                check = checkList.size()==4;
+                break;
+        }
+        logger.info("check..{}", check);
+
+        return check;
+    }
+
+//    public static void addTableHeader(PdfPTable table) {
+//        Stream.of("S/N", "Customer", "Order Ref", "Merchant Code", "Business Name", "Terminal", "Channel", "Transaction Date", "Service", "Amount")
+//                .forEach(columnTitle -> {
+//                    PdfPCell header = new PdfPCell();
+//                    header.setBackgroundColor(BaseColor.LIGHT_GRAY);
+//                    header.setBorderWidth(2);
+//                    header.setPhrase(new Phrase(columnTitle));
+//                    table.addCell(header);
+//                });
+//    }
 }

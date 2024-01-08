@@ -5,23 +5,32 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.enums.Permission;
+import com.jamub.payaccess.api.models.AuthMerchantData;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.User;
-import com.jamub.payaccess.api.models.request.ForgotPasswordRequest;
-import com.jamub.payaccess.api.models.request.MerchantUserBioDataUpdateRequest;
-import com.jamub.payaccess.api.models.request.UpdateForgotPasswordRequest;
-import com.jamub.payaccess.api.models.request.ValidateOtpRequest;
+import com.jamub.payaccess.api.models.request.*;
+import com.jamub.payaccess.api.models.response.AuthenticateResponse;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.models.response.TokenResponse;
+import com.jamub.payaccess.api.providers.TokenProvider;
+import com.jamub.payaccess.api.services.MerchantService;
 import com.jamub.payaccess.api.services.TokenService;
 import com.jamub.payaccess.api.services.UserService;
 import com.nimbusds.jwt.JWTClaimsSet;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderNotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpServerErrorException;
@@ -31,12 +40,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@Api(produces = "application/json", value = "Operations pertaining to Authentication. Ignore for APIs on Authentication Server")
+@Api(produces = "application/json", description = "Operations pertaining to Authentication. Ignore for APIs on Authentication Server")
 public class AuthenticationController {
 
     @Autowired
@@ -50,6 +60,68 @@ public class AuthenticationController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private TokenProvider jwtTokenUtil;
+
+    @Autowired
+    MerchantService merchantService;
+
+    @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
+    public ResponseEntity<?> generateToken(@RequestBody LoginRequest loginUser) throws AuthenticationException, JsonProcessingException {
+
+        logger.info("111111111111....{}", loginUser.getUsername());
+//        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUser.getEmailAddress(), loginUser.getPassword());
+//        logger.info("{}", authenticationToken.getPrincipal());
+//        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+//        logger.info("{}", authentication.isAuthenticated());
+        logger.info("2222....{}", loginUser.getPassword());
+        try {
+            final Authentication authentication = authenticationManager.authenticate(
+                    //                new AuthenticationManagerCustom(loginUser.getEmailAddress(), loginUser.getPassword())
+                    //                new PayAccessAuthenticationProvider()
+
+                    new UsernamePasswordAuthenticationToken(
+                            loginUser.getUsername(),
+                            loginUser.getPassword()
+                    )
+            );
+
+            logger.info("{}", authentication.isAuthenticated());
+            logger.info("{}", authentication.getPrincipal());
+            //        logger.info("{}>>>>", loginUser.getEmailAddress());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            final String token = jwtTokenUtil.generateToken(authentication);
+            logger.info("token...{}", token);
+
+
+            List<AuthMerchantData> merchantList = merchantService.getMerchantIdsByUsername(loginUser.getUsername());
+            AuthenticateResponse authenticateResponse = new AuthenticateResponse();
+            authenticateResponse.setToken(token);
+            authenticateResponse.setSubject(loginUser.getUsername());
+            authenticateResponse.setMerchantList(merchantList);
+            authenticateResponse.setMessage("Login successful");
+
+
+            return ResponseEntity.ok(authenticateResponse);
+        }
+        catch(ProviderNotFoundException e)
+        {
+            AuthenticateResponse authenticateResponse = new AuthenticateResponse();
+            authenticateResponse.setToken(null);
+            authenticateResponse.setSubject(loginUser.getUsername());
+            authenticateResponse.setMerchantList(new ArrayList<>());
+            authenticateResponse.setMessage("Invalid username/password combination. Please provide a valid username/password to log in");
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(authenticateResponse);
+        }
+    }
+
 
 
     @CrossOrigin

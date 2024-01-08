@@ -3,19 +3,22 @@ package com.jamub.payaccess.api.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.collect.ObjectArrays;
 import com.jamub.payaccess.api.dao.util.ObjectToUrlEncodedConverter;
 import com.jamub.payaccess.api.dao.util.UtilityHelper;
+import com.jamub.payaccess.api.enums.PaymentRequestType;
+import com.jamub.payaccess.api.exception.ConfirmTransactionStatusException;
 import com.jamub.payaccess.api.exception.ISWCardPaymentErrorHandler;
+import com.jamub.payaccess.api.models.PaymentRequest;
 import com.jamub.payaccess.api.models.Transaction;
-import com.jamub.payaccess.api.models.response.AuthOTPResponse;
-import com.jamub.payaccess.api.models.response.ISWCardPaymentResponse;
+import com.jamub.payaccess.api.models.response.*;
 import com.jamub.payaccess.api.models.Merchant;
 import com.jamub.payaccess.api.models.request.AuthenticateCardPaymentOtpRequest;
 import com.jamub.payaccess.api.models.request.ISWAuthTokenRequest;
 import com.jamub.payaccess.api.models.request.InitiateTransactionRequest;
-import com.jamub.payaccess.api.models.response.ISWAuthTokenResponse;
 import lombok.Getter;
 import lombok.Setter;
+import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +38,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.*;
 
 @Service
@@ -49,12 +53,22 @@ public class ISWService {
     private String purchaseApiUrl;
     @Value("${isw.card.auth.otp.api.url}")
     private String authOTPApiUrl;
+
+    @Value("${isw.confirm.transaction.status.url}")
+    private String confirmTransactionStatusUrl;
     @Value("${isw.passport.oauth.clientId}")
     private String clientId;
     @Value("${isw.passport.oauth.secretKey}")
     private String secretKey;
 
+
+    @Value("${isw.merchant.code}")
+    private String iswMerchantClientId;
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Value("${isw.payaccess.payment.prefix}")
+    private String payAccessPaymentPrefix;
 
     public ISWAuthTokenResponse getToken() throws Exception {
         try
@@ -142,7 +156,7 @@ public class ISWService {
                 ISWReq iswReq = new ISWReq();
                 iswReq.setAmount(initiateTransactionRequest.getAmount().multiply(BigDecimal.valueOf(10L)).toString());
                 iswReq.setCustomerId(initiateTransactionRequest.getCustomerId());
-                iswReq.setTransactionRef("PA-".concat(initiateTransactionRequest.getOrderRef()));
+                iswReq.setTransactionRef(payAccessPaymentPrefix.concat(initiateTransactionRequest.getOrderRef()));
                 iswReq.setCurrency(initiateTransactionRequest.getCurrencyCode());
                 iswReq.setAuthData(authData);
                 ObjectWriter ow = new ObjectMapper().writer();
@@ -229,6 +243,104 @@ public class ISWService {
     }
 
 
+    public ConfirmTransactionStatusResponse confirmTransactionStatus(
+            Transaction transaction,
+             ISWAuthTokenResponse iswAuthTokenResponse,
+             PaymentRequestService paymentRequestService) throws ConfirmTransactionStatusException, JsonProcessingException {
+        String orderRef = payAccessPaymentPrefix.concat(transaction.getOrderRef());
+        String payAccessMerchantCode = transaction.getMerchantCode();
+        String switchAuthToken = iswAuthTokenResponse.getAccess_token();
+
+        String uri = UriComponentsBuilder
+                .fromUriString(confirmTransactionStatusUrl)
+                .queryParam("transactionReference", orderRef)
+                .queryParam("merchantCode", iswMerchantClientId)
+                .build()
+                .toString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + switchAuthToken);
+        headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        logger.info("switchAuthToken .. {}", uri);
+
+
+//        ISWAuthTokenRequest iswAuthTokenRequest = new ISWAuthTokenRequest();
+        HttpEntity<String> entity = new HttpEntity<String>(headers);
+
+        try
+        {
+
+            PaymentRequest paymentRequest = paymentRequestService.createPaymentRequest(payAccessMerchantCode,
+                    transaction.getTerminalCode(),
+                    transaction.getOrderRef(),
+                    PaymentRequestType.CONFIRM_TRANSACTION_STATUS,
+                    (new ObjectMapper()).writeValueAsString(authOTPApiUrl.toString())
+            );
+            paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+
+            ResponseEntity responseEntity = restTemplate
+                    //.getForEntity(uri, ConfirmTransactionStatusResponse.class);
+                    .exchange(uri, HttpMethod.GET, entity, ConfirmTransactionStatusResponse.class);
+
+
+            HttpStatus responseStatus = responseEntity.getStatusCode();
+            logger.info("responseStatus ... {}", responseStatus);
+            logger.info("responseStatus ... {}", responseStatus.value());
+            if(responseStatus.equals(HttpStatus.OK)) {
+                ConfirmTransactionStatusResponse confirmTransactionStatusResponse = (ConfirmTransactionStatusResponse)responseEntity.getBody();
+                logger.info("{}", new ObjectMapper().writeValueAsString(confirmTransactionStatusResponse));
+                logger.info("confirmTransactionStatusResponse...{}", confirmTransactionStatusResponse);
+
+                paymentRequest.setResponseBody(new ObjectMapper().writeValueAsString(confirmTransactionStatusResponse));
+                paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+                return confirmTransactionStatusResponse;
+            }
+            else
+            {
+
+                ConfirmTransactionStatusErrorResponse responseBody = (ConfirmTransactionStatusErrorResponse)responseEntity.getBody();
+                logger.info("....{}", responseBody.toString());
+                paymentRequest.setResponseBody(new ObjectMapper().writeValueAsString(responseBody));
+//                paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+                DecimalFormat df = new DecimalFormat("#,##0.00");
+                String errorMessage = "Transaction Ref #".concat(transaction.getTransactionRef()).concat(" for the amount of ").
+                        concat(transaction.getPayAccessCurrency().name()).concat(df.format(transaction.getAmount())).
+                        concat(" is pending confirmation. Your payment card/account may have been debited");
+                throw new ConfirmTransactionStatusException(responseBody.getDescription());
+            }
+
+        }
+        catch(HttpServerErrorException e)
+        {
+            return null;
+        } catch (HttpClientErrorException e) {
+            PaymentRequest paymentRequest = new PaymentRequest();
+            paymentRequest.setResponseBody(e.getMessage());
+            //paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
+
+            ConfirmTransactionStatusErrorResponse errorResponse = new ObjectMapper().readValue(e.getResponseBodyAsString(), ConfirmTransactionStatusErrorResponse.class);
+
+            DecimalFormat df = new DecimalFormat("#,##0.00");
+            String errorMessage = "Transaction Ref #".concat(transaction.getTransactionRef()).concat(" for the amount of ").
+                    concat(transaction.getPayAccessCurrency().name()).concat(df.format(transaction.getAmount())).
+                    concat(" is pending confirmation. Your payment card/account may have been debited");
+            throw new ConfirmTransactionStatusException(errorResponse.getDescription());
+        }catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+//PA-AAB78318
+// https://qa.interswitchng.com/paymentgateway/api/v1/transactions?merchantCode=MX159525&pageNum=0&pageSize=10&startDate=01/01/2024&endDate=01/03/2024&transactionReference=PA-AAB78318
+
+
+//    https://qa.interswitchng.com/paymentgateway/api/v1/virtualaccounts/transaction?transactionReference=PA-474583974&merchantCode=MX159525
+//    https://qa.interswitchng.com/paymentgateway/api/v1/virtualaccounts/transaction?merchantCode=MX159525&transactionReference=PA-AAB78318
     @Getter
     @Setter
     class ISWReq implements Serializable {

@@ -2,14 +2,12 @@ package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
-import com.jamub.payaccess.api.enums.Permission;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.UserRolePermission;
 import com.jamub.payaccess.api.models.request.CreateRolePrivilegeRequest;
-import com.jamub.payaccess.api.models.request.TerminalOrderRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
-import com.jamub.payaccess.api.services.BankService;
 import com.jamub.payaccess.api.services.RoleService;
 import com.jamub.payaccess.api.services.TokenService;
 import io.swagger.annotations.*;
@@ -35,7 +33,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/roles")
-@Api(produces = "application/json", value = "Operations pertaining to Role Management")
+@Api(produces = "application/json", description = "Operations pertaining to Role Management")
 public class RoleController {
 
 
@@ -103,7 +101,7 @@ public class RoleController {
 
     @CrossOrigin
     //CREATE_ROLE_PERMISSION
-    @PreAuthorize("hasRole('ROLE_CREATE_NEW_ACQUIRER')")
+    @PreAuthorize("hasRole('CREATE_ROLE_PERMISSION')")
     @RequestMapping(value = "/create-role-permissions", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Create Role Permission", response = ResponseEntity.class)
@@ -116,7 +114,7 @@ public class RoleController {
     public ResponseEntity createRolePermission(@RequestBody @Valid CreateRolePrivilegeRequest createRolePrivilegeRequest,
                                                 BindingResult bindingResult,
                                                 HttpServletRequest request,
-                                                HttpServletResponse response) throws JsonProcessingException {
+                                                HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         if (bindingResult.hasErrors()) {
@@ -180,7 +178,7 @@ public class RoleController {
             @PathVariable(required = true) Integer pageNumber,
             @RequestParam(required = false) Optional<String> roleName,
             HttpServletRequest request,
-            HttpServletResponse response) throws JsonProcessingException {
+            HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 

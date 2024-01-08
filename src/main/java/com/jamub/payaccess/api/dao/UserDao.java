@@ -4,14 +4,10 @@ import com.jamub.payaccess.api.dao.util.MerchantRowMapper;
 import com.jamub.payaccess.api.dao.util.RowMapper;
 import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.ApplicationAction;
-import com.jamub.payaccess.api.enums.CustomerStatus;
-import com.jamub.payaccess.api.enums.MerchantStatus;
 import com.jamub.payaccess.api.enums.UserStatus;
-import com.jamub.payaccess.api.models.Customer;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.UserRolePermission;
 import com.jamub.payaccess.api.models.request.*;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +44,7 @@ public class UserDao implements Dao<User>{
     private SimpleJdbcCall handleGetUsers;
     private SimpleJdbcCall handleUpdateUserOtp;
     private SimpleJdbcCall handleUpdateUserForgotPasswordLink;
+    private SimpleJdbcCall handleUpdateUserForgotPasswordLinkForAdmin;
     private SimpleJdbcCall handleUpdateUserPassword;
     private SimpleJdbcCall handleRecoverUserPassword;
     private SimpleJdbcCall handleRecoverUserPasswordAdmin;
@@ -114,6 +111,10 @@ public class UserDao implements Dao<User>{
                 });
         handleUpdateUserForgotPasswordLink = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("UpdateUserForgotPasswordLink")
+                .returningResultSet("#result-set-1",
+                        RowMapper.newInstance(User.class));
+        handleUpdateUserForgotPasswordLinkForAdmin = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("UpdateUserForgotPasswordLinkForAdmin")
                 .returningResultSet("#result-set-1",
                         RowMapper.newInstance(User.class));
         handleRecoverUserPassword = new SimpleJdbcCall(jdbcTemplate)
@@ -284,8 +285,9 @@ public class UserDao implements Dao<User>{
                 .addValue("emailAddress", userCreateRequest.getEmailAddress())
                 .addValue("firstName", userCreateRequest.getFirstName())
                 .addValue("lastName", userCreateRequest.getLastName())
-                .addValue("userRole", userCreateRequest.getUserRole().name())
+                .addValue("userRole", userCreateRequest.getUserRole())
                 .addValue("password", bcryptPassword)
+                .addValue("mobileNumber", userCreateRequest.getPhoneNumber())
                 .addValue("userStatus", UserStatus.ACTIVE.name())
                 .addValue("carriedOutByUserFullName", carriedOutByUserFullName)
                 .addValue("carriedOutByUserId", actorId)
@@ -303,16 +305,17 @@ public class UserDao implements Dao<User>{
 
 
 
-    public User updateAdminUser(UserCreateRequest userCreateRequest,
+    public User updateAdminUser(UserUpdateRequest userUpdateRequest,
                                 String carriedOutByUserFullName, Long actorId, ApplicationAction userAction,
                               String description, String ipAddress, String objectClassReference) {
 //        logger.info("merchantSignUpRequest.isSoftwareDeveloper()...{}", merchantSignUpRequest.isSoftwareDeveloper());
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("emailAddress", userCreateRequest.getEmailAddress())
-                .addValue("firstName", userCreateRequest.getFirstName())
-                .addValue("lastName", userCreateRequest.getLastName())
-                .addValue("userRole", userCreateRequest.getUserRole().name())
-                .addValue("userId", userCreateRequest.getUserId())
+                .addValue("emailAddress", userUpdateRequest.getEmailAddress())
+                .addValue("firstName", userUpdateRequest.getFirstName())
+                .addValue("lastName", userUpdateRequest.getLastName())
+                .addValue("userRole", userUpdateRequest.getUserRole())
+                .addValue("mobileNumber", userUpdateRequest.getPhoneNumber())
+                .addValue("userId", userUpdateRequest.getUserId())
                 .addValue("userStatus", UserStatus.ACTIVE.name())
                 .addValue("carriedOutByUserFullName", carriedOutByUserFullName)
                 .addValue("carriedOutByUserId", actorId)
@@ -374,6 +377,17 @@ public class UserDao implements Dao<User>{
                 .addValue("otpExpiryDate", otpExpiryDate)
                 .addValue("forgotPasswordLink", forgotPasswordLink);
         Map<String, Object> m = handleUpdateUserForgotPasswordLink.execute(in);
+        List<User> result = (List<User>) m.get("#result-set-1");
+        User user = result!=null && !result.isEmpty() ? result.get(0) : null;
+        return user;
+    }
+
+
+    public User updateUserForgotPasswordLinkForAdmin(String emailAddress, String forgotPasswordLink) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("emailAddress", emailAddress)
+                .addValue("forgotPasswordLink", forgotPasswordLink);
+        Map<String, Object> m = handleUpdateUserForgotPasswordLinkForAdmin.execute(in);
         List<User> result = (List<User>) m.get("#result-set-1");
         User user = result!=null && !result.isEmpty() ? result.get(0) : null;
         return user;

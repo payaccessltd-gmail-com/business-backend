@@ -3,17 +3,13 @@ package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
-import com.jamub.payaccess.api.enums.Permission;
-import com.jamub.payaccess.api.models.Merchant;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.AuditTrailFilterRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.services.AuditTrailService;
 import com.jamub.payaccess.api.services.TokenService;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/v1/audit")
+@Api(produces = "application/json", description = "Audit listing")
 public class AuditController {
 
 
@@ -51,7 +48,7 @@ public class AuditController {
             @PathVariable(required = false) Integer pageSize,
             AuditTrailFilterRequest auditTrailFilterRequest,
             HttpServletRequest request,
-            HttpServletResponse response) throws JsonProcessingException {
+            HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         User authenticatedUser = tokenService.getUserFromToken(request);

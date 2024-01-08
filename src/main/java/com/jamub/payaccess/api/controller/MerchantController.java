@@ -3,17 +3,16 @@ package com.jamub.payaccess.api.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.*;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.*;
 import com.jamub.payaccess.api.models.request.*;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.services.EmailService;
 import com.jamub.payaccess.api.services.MerchantService;
 import com.jamub.payaccess.api.services.TokenService;
-import com.sun.mail.smtp.SMTPTransport;
 import io.swagger.annotations.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.commons.lang3.RandomStringUtils;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,18 +22,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
@@ -42,7 +35,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/merchant")
-@Api(produces = "application/json", value = "Operations pertaining to Merchants")
+@Api(produces = "application/json", description = "Operations pertaining to Merchants")
 public class MerchantController {
 
     @Autowired
@@ -82,7 +75,7 @@ public class MerchantController {
     public ResponseEntity addNewMerchantToExistingUser(@RequestBody @Valid AddMerchantRequest addMerchantRequest,
                                                        BindingResult bindingResult,
                                            HttpServletRequest request,
-                                           HttpServletResponse response) {
+                                           HttpServletResponse response) throws PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -136,7 +129,7 @@ public class MerchantController {
     public ResponseEntity newUserSignup(@RequestBody @Valid MerchantSignUpRequest merchantSignUpRequest,
                                         BindingResult bindingResult,
                 HttpServletRequest request,
-                HttpServletResponse response) {
+                HttpServletResponse response) throws PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -206,7 +199,7 @@ public class MerchantController {
     public ResponseEntity updateMerchantCountry(@RequestBody @Valid UpdateMerchantCountryRequest updateMerchantCountryRequest,
                                                 BindingResult bindingResult,
                                            HttpServletRequest request,
-                                           HttpServletResponse response) {
+                                           HttpServletResponse response) throws PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -262,7 +255,7 @@ public class MerchantController {
     public ResponseEntity updateMerchantPayAccessUsage(@PathVariable String payAccessUse,
                                                           @PathVariable Long merchantId,
                                                    HttpServletRequest request,
-                                                   HttpServletResponse response) {
+                                                   HttpServletResponse response) throws PayAccessAuthException {
         User authenticatedUser = null;
         try {
             authenticatedUser = tokenService.getUserFromToken(request);
@@ -319,7 +312,7 @@ public class MerchantController {
     public ResponseEntity updateMerchantBioData(@Valid UpdateMerchantBioDataRequest merchantBioDataRequest,
                                                 BindingResult bindingResult,
                                                    HttpServletRequest request,
-                                                   HttpServletResponse response) throws JsonProcessingException {
+                                                   HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -339,7 +332,7 @@ public class MerchantController {
         {
             MerchantUserBioDataUpdateRequest merchantUserBioDataUpdateRequest = new MerchantUserBioDataUpdateRequest();
             merchantUserBioDataUpdateRequest.setGender(merchantBioDataRequest.getGender());
-            merchantUserBioDataUpdateRequest.setEmailAddress(merchantBioDataRequest.getEmailAddress());
+            merchantUserBioDataUpdateRequest.setEmailAddress(authenticatedUser.getEmailAddress());
             merchantUserBioDataUpdateRequest.setDateOfBirth(dateOfBirthLD);
             merchantUserBioDataUpdateRequest.setIdentificationNumber(merchantBioDataRequest.getIdentificationNumber());
             merchantUserBioDataUpdateRequest.setIdentificationDocument(merchantBioDataRequest.getIdentificationDocument());
@@ -401,7 +394,7 @@ public class MerchantController {
                                                    @Valid UpdateMerchantKYCRequest updateMerchantKYCRequest,
                                                    BindingResult bindingResult,
                                                    HttpServletRequest request,
-                                                   HttpServletResponse response) throws JsonProcessingException {
+                                                   HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -493,7 +486,7 @@ public class MerchantController {
     public ResponseEntity updateMerchantBusinessData(@Valid UpdateMerchantBusinessDataRequest updateMerchantBusinessDataRequest,
                                                         BindingResult bindingResult,
                                                         HttpServletRequest request,
-                                                        HttpServletResponse response) throws JsonProcessingException {
+                                                        HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 //        Long merchantIdL = Long.valueOf(merchantId);
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -630,7 +623,7 @@ public class MerchantController {
     public ResponseEntity updateMerchantBusinessBankAccountData(@RequestBody @Valid MerchantBusinessBankAccountDataUpdateRequest merchantBusinessBankAccountDataUpdateRequest,
                                                                 BindingResult bindingResult,
                                                                    HttpServletRequest request,
-                                                                   HttpServletResponse response) throws JsonProcessingException {
+                                                                   HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         if (bindingResult.hasErrors()) {
@@ -674,7 +667,7 @@ public class MerchantController {
             @ApiResponse(code = 500, message = "Application failed to process the request")
     })
     public ResponseEntity requestMerchantApproval(@PathVariable String merchantCode, HttpServletRequest request,
-                                                HttpServletResponse response) throws JsonProcessingException {
+                                                HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
         if(authenticatedUser==null)
@@ -690,6 +683,8 @@ public class MerchantController {
     }
 
 
+
+
     @CrossOrigin
     //VIEW_MERCHANT
     @PreAuthorize("hasRole('ROLE_VIEW_MERCHANT')")
@@ -703,7 +698,7 @@ public class MerchantController {
             @ApiResponse(code = 500, message = "Application failed to process the request")
     })
     public ResponseEntity getMerchantDetails(@PathVariable String merchantCode, HttpServletRequest request,
-                                                HttpServletResponse response) throws JsonProcessingException {
+                                                HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
         if(authenticatedUser==null)
@@ -747,7 +742,7 @@ public class MerchantController {
     })
     public ResponseEntity approveMerchant(@RequestBody @Valid MerchantStatusUpdateRequest merchantStatusUpdateRequest,
                                           BindingResult bindingResult, HttpServletRequest request,
-                                             HttpServletResponse response) throws JsonProcessingException {
+                                             HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -790,7 +785,7 @@ public class MerchantController {
     })
     public ResponseEntity disapproveMerchant(@RequestBody @Valid MerchantStatusUpdateRequest merchantStatusUpdateRequest,
                                              BindingResult bindingResult, HttpServletRequest request,
-                                             HttpServletResponse response) throws JsonProcessingException {
+                                             HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -832,7 +827,7 @@ public class MerchantController {
     })
     public ResponseEntity updateMerchantStatus(@RequestBody @Valid MerchantStatusUpdateRequest merchantStatusUpdateRequest,
                                                BindingResult bindingResult, HttpServletRequest request,
-                                                  HttpServletResponse response) throws JsonProcessingException {
+                                                  HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -882,7 +877,7 @@ public class MerchantController {
             @PathVariable(required = false) Integer pageNumber,
             GetMerchantFilterRequest getMerchantFilterRequest,
             HttpServletRequest request,
-            HttpServletResponse response) throws JsonProcessingException {
+            HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         logger.info("{}, {}", getMerchantFilterRequest.getStartDate(), getMerchantFilterRequest.getEndDate());
 
@@ -911,7 +906,7 @@ public class MerchantController {
     })
     public ResponseEntity reviewMerchantStatus(@RequestBody @Valid MerchantReviewUpdateStatusRequest merchantReviewUpdateStatusRequest,
                                                BindingResult bindingResult, HttpServletRequest request,
-                                               HttpServletResponse response) throws JsonProcessingException {
+                                               HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -922,6 +917,25 @@ public class MerchantController {
 
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setResponseObject(errorMessageList);
+            payAccessResponse.setStatusCode(PayAccessStatusCode.VALIDATION_FAILED.label);
+            payAccessResponse.setMessage("Request validation failed");
+            return ResponseEntity.badRequest().body(payAccessResponse);
+        }
+
+        logger.info("isEmpty ... {}", merchantReviewUpdateStatusRequest.getReason().isEmpty());
+
+        if(
+                merchantReviewUpdateStatusRequest.getReason().isEmpty() &&
+                Arrays.asList((new String[]{MerchantReviewStatus.REQUEST_UPDATE.name(), MerchantReviewStatus.REJECTED.name()})).contains(merchantReviewUpdateStatusRequest.getMerchantReviewStatus()))
+        {
+            JSONArray jsonArray = new JSONArray();
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("fieldName", "reason");
+            jsonObject.put("fieldErrorMessage", "Reason must be provided");
+            jsonArray.add(jsonObject);
+
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setResponseObject(jsonArray);
             payAccessResponse.setStatusCode(PayAccessStatusCode.VALIDATION_FAILED.label);
             payAccessResponse.setMessage("Request validation failed");
             return ResponseEntity.badRequest().body(payAccessResponse);
@@ -956,6 +970,25 @@ public class MerchantController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
         }
         PayAccessResponse payAccessResponse = new PayAccessResponse();
+
+
+        List merchantCheckList = merchantService.getMerchantDetails(merchantReviewUpdateStatusRequest.getMerchantCode());
+        if(merchantCheckList!=null && !merchantCheckList.isEmpty())
+        {
+            Merchant merchantCheck = (Merchant) merchantCheckList.get(0);
+            Boolean proceed  = UtilityHelper.validateMerchantReview(merchantCheck, merchantReviewUpdateStatusRequest);
+
+            if(proceed.equals(Boolean.FALSE))
+            {
+                payAccessResponse.setStatusCode(PayAccessStatusCode.INCOMPLETE_REQUEST.label);
+                payAccessResponse.setMessage("Merchant needs to fill the necessary section before you can approve/disapprove the selected section");
+                payAccessResponse.setResponseObject(merchantCheck);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+            }
+        }
+
+
+
         Merchant merchant = merchantService.handleReviewMerchantStatus(merchantReviewUpdateStatusRequest, authenticatedUser);
         payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
         payAccessResponse.setResponseObject(merchant);
@@ -1055,7 +1088,7 @@ public class MerchantController {
     public ResponseEntity getMerchantApproval(
             @PathVariable(required = true) String merchantCode,
             HttpServletRequest request,
-            HttpServletResponse response) throws JsonProcessingException {
+            HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
         if(authenticatedUser==null)
@@ -1088,7 +1121,7 @@ public class MerchantController {
             @RequestBody @Valid SwitchApiModeRequest switchApiMode,
             BindingResult bindingResult,
             HttpServletRequest request,
-            HttpServletResponse response) throws JsonProcessingException {
+            HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         if (bindingResult.hasErrors()) {

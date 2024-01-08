@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.providers.TokenProvider;
 import com.jamub.payaccess.api.models.User;
 import com.nimbusds.jose.*;
@@ -92,7 +93,7 @@ public class TokenService {
 
 
 
-    public User getUserFromToken(HttpServletRequest request) throws JsonProcessingException {
+    public User getUserFromToken(HttpServletRequest request) throws JsonProcessingException, PayAccessAuthException {
         Enumeration<String> headers = request.getHeaderNames();
         while(headers.hasMoreElements()) {
             String key = headers.nextElement();

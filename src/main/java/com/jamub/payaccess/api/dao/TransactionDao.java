@@ -3,6 +3,7 @@ package com.jamub.payaccess.api.dao;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jamub.payaccess.api.dao.util.MerchantRowMapper;
+import com.jamub.payaccess.api.dto.SettlementTransactionDTO;
 import com.jamub.payaccess.api.enums.MerchantStatus;
 import com.jamub.payaccess.api.enums.ServiceType;
 import com.jamub.payaccess.api.enums.TransactionStatus;
@@ -15,11 +16,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -38,6 +41,7 @@ public class TransactionDao implements Dao<Transaction>{
     private SimpleJdbcCall createNewTransaction;
     private SimpleJdbcCall updateTransaction;
     private SimpleJdbcCall getTransactionByOrderRef;
+    private SimpleJdbcCall getAllTransactionsForSettlement;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -86,6 +90,10 @@ public class TransactionDao implements Dao<Transaction>{
                 .withProcedureName("GetTransactionByOrderRef")
                 .returningResultSet("#result-set-1",
                         MerchantRowMapper.newInstance(Transaction.class));
+        getAllTransactionsForSettlement = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("GetAllTransactionsForSettlement")
+                .returningResultSet("#result-set-1",
+                        MerchantRowMapper.newInstance(SettlementTransactionDTO.class));
     }
 
     @Override
@@ -138,6 +146,32 @@ public class TransactionDao implements Dao<Transaction>{
     }
 
 
+
+
+//    public Map getAll(TransactionFilterRequest transactionFilterRequest, Integer pageNumber, Integer pageSize) {
+//        MapSqlParameterSource in = new MapSqlParameterSource()
+//                .addValue("pageNumber", pageNumber)
+//                .addValue("pageSize", pageSize)
+//                .addValue("transactionStatus", transactionFilterRequest.getTransactionStatus())
+//                .addValue("merchantCode", transactionFilterRequest.getMerchantCode())
+//                .addValue("startDate", transactionFilterRequest.getStartDate())
+//                .addValue("endDate", transactionFilterRequest.getEndDate())
+//                .addValue("minAmount", transactionFilterRequest.getMinAmount())
+//                .addValue("maxAmount", transactionFilterRequest.getMaxAmount())
+//                .addValue("orderRef", transactionFilterRequest.getOrderRef())
+//                .addValue("switchTransactionRef", transactionFilterRequest.getSwitchTransactionRef())
+//                .addValue("terminalCode", transactionFilterRequest.getTerminalCode());
+//        Map<String, Object> m = getAllTransactions.execute(in);
+//
+//        List<Transaction> result = (List<Transaction>) m.get("#result-set-1");
+//        List<Integer> totalCountResult = (List<Integer>) m.get("#result-set-2");
+//        Map returnList = new HashMap();
+//        returnList.put("list", result);
+//        returnList.put("totalCount", totalCountResult.get(0));
+//        return returnList;
+//    }
+
+
     public Map getAllByMerchantId(TransactionFilterRequest transactionFilterRequest, Integer pageNumber, Integer pageSize, Long merchantId) {
         MapSqlParameterSource in = new MapSqlParameterSource()
                 .addValue("pageNumber", pageNumber)
@@ -174,6 +208,7 @@ public class TransactionDao implements Dao<Transaction>{
     public Transaction createNewTransaction(InitiateTransactionRequest initiateTransactionRequest, Merchant merchant, Terminal terminal, String messageRequest) {
 
         MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("customData", initiateTransactionRequest.getCustomData())
                 .addValue("payAccessCurrency", initiateTransactionRequest.getCurrencyCode())
                 .addValue("amount", initiateTransactionRequest.getAmount())
                 .addValue("orderRef", initiateTransactionRequest.getOrderRef())
@@ -199,6 +234,7 @@ public class TransactionDao implements Dao<Transaction>{
 
     public Transaction updateTransaction(Transaction transaction) {
         MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("customData", transaction.getCustomData())
                 .addValue("payAccessCurrency", transaction.getPayAccessCurrency())
                 .addValue("amount", transaction.getAmount())
                 .addValue("orderRef", transaction.getOrderRef())
@@ -256,4 +292,17 @@ public class TransactionDao implements Dao<Transaction>{
         Transaction transaction = result!=null && !result.isEmpty() ? result.get(0) : null;
         return transaction;
     }
+
+    public List getAllTransactionsForSettlement(TransactionFilterRequest transactionFilterRequest, TransactionStatus transactionStatus) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("transactionStatus", transactionStatus)
+//                .addValue("merchantCode", transactionFilterRequest.getMerchantCode())
+                .addValue("startDate", transactionFilterRequest.getStartDate())
+                .addValue("endDate", transactionFilterRequest.getEndDate());
+
+        Map<String, Object> m = getAllTransactionsForSettlement.execute(in);
+        List<SettlementTransactionDTO> result = (List<SettlementTransactionDTO>) m.get("#result-set-1");
+        return result;
+    }
+
 }

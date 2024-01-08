@@ -3,14 +3,12 @@ package com.jamub.payaccess.api.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.ApplicationAction;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
-import com.jamub.payaccess.api.enums.Permission;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.Bank;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.User;
-import com.jamub.payaccess.api.models.request.CreateAcquirerRequest;
 import com.jamub.payaccess.api.models.request.CreateBankRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
-import com.jamub.payaccess.api.services.AcquirerService;
 import com.jamub.payaccess.api.services.BankService;
 import com.jamub.payaccess.api.services.TokenService;
 import io.swagger.annotations.*;
@@ -34,7 +32,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/banks")
-@Api(produces = "application/json", value = "Operations pertaining to Banks")
+@Api(produces = "application/json", description = "Operations pertaining to Banks")
 public class BankController {
 
 
@@ -62,7 +60,7 @@ public class BankController {
     public ResponseEntity createNewBank(@RequestBody @Valid CreateBankRequest createBankRequest,
                                         BindingResult bindingResult,
                                         HttpServletRequest request,
-                                        HttpServletResponse response) throws JsonProcessingException {
+                                        HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         if (bindingResult.hasErrors()) {
@@ -121,7 +119,7 @@ public class BankController {
     public ResponseEntity getBanks(
             @PathVariable(required = true) Integer pageNumber,
             @PathVariable(required = false) Integer pageSize,
-            HttpServletRequest request, HttpServletResponse response) throws JsonProcessingException {
+            HttpServletRequest request, HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 

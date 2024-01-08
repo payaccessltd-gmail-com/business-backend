@@ -641,7 +641,8 @@ public class MerchantDao implements Dao<Merchant>{
         Map<String, Object> m = handleApproveMerchant.execute(in);
         logger.info("{}", m);
         Merchant approvedMerchant = null;
-        approvedMerchant = (Merchant)((ArrayList) m.get("#result-set-1")).get(0);
+        List merchantList = ((ArrayList) m.get("#result-set-1"));
+        approvedMerchant = merchantList!=null && !merchantList.isEmpty() ? (Merchant) merchantList.get(0) : null;
 
         return approvedMerchant;
     }

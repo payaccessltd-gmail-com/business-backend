@@ -18,7 +18,7 @@ import java.util.Date;
 @Table(name="terminal_requests")
 public class TerminalRequest implements Serializable {
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	Long id;
 	@Column(nullable = false)
 	Integer quantity;

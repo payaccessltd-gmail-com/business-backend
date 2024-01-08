@@ -19,4 +19,5 @@ public class PayAccessAuthResponse {
     private UserRole role;
     private List<UserRolePermission> permissionList;
     private List<AuthMerchantData> merchantList;
+    private String message;
 }

@@ -74,8 +74,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .and()
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/v1/acquirers/authenticate", "/api/v1/user/forgot-password",
-                        "/api/v1/user/update-forgot-password", "/api/v1/user/set-password").permitAll() //"/api/v1/acquirers/create-user",
+                .antMatchers("/v2/api-docs").permitAll()
+                .antMatchers("/configuration/ui").permitAll()
+                .antMatchers("/swagger-resources/**").permitAll()
+                .antMatchers("/configuration/security").permitAll()
+                .antMatchers("/swagger-ui.html").permitAll()
+                .antMatchers("/swagger-ui/*").permitAll()
+                .antMatchers("/webjars/**").permitAll()
+                .antMatchers("/v2/**").permitAll()
+                .antMatchers("/api/v1/invoice/get-invoice-details-for-guest/**").permitAll()
+                .antMatchers("/api/v1/user/activate-account").permitAll()
+                .antMatchers("/api/v1/invoice/mark-invoice-paid/**").permitAll()
+                .antMatchers("/api/v1/user/update-forgot-password-admin").permitAll()
+                .antMatchers("/api/v1/auth/authenticate", "/api/v1/user/forgot-password",
+                        "/api/v1/transactions/authorize-card-payment-otp", "/api/v1/transactions/debit-card",
+                        "/api/v1/transactions/test-validate-transaction", "/api/v1/user/set-password",
+                        "/api/v1/user/update-forgot-password", "/api/v1/user/new-signup").permitAll() //"/api/v1/acquirers/create-user",
                 .anyRequest().authenticated()
                 .and()
                 .authenticationProvider(authProvider)

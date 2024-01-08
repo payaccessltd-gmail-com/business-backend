@@ -210,9 +210,8 @@ public class InvoiceService {
 
             Invoice finalInvoice = invoice;
             standardInvoiceRequest.getInvoiceBreakdownList().forEach(ibl -> {
-                ibl.setInvoiceId(finalInvoice.getId());
                 invoiceDao.saveInvoiceBreakDown(
-                        ibl.getInvoiceId(),
+                        finalInvoice.getId(),
                         ibl.getInvoiceItem(),
                         ibl.getQuantity(),
                         ibl.getCostPerUnit()
@@ -347,5 +346,14 @@ public class InvoiceService {
 
     public Integer deleteInvoice(Invoice invoice) {
         return invoiceDao.deleteInvoice(invoice.getId(), invoice.getCreatedByMerchantId());
+    }
+
+    public Invoice getInvoiceByInvoiceNumberAndMerchantCode(String invoiceNumber, String merchantCode) {
+        Optional<Invoice> optionalInvoice = invoiceDao.getInvoiceByInvoiceNumberAndMerchantCode(invoiceNumber, merchantCode);
+        Invoice invoice = null;
+        if(optionalInvoice.isPresent())
+            invoice = optionalInvoice.get();
+
+        return invoice;
     }
 }

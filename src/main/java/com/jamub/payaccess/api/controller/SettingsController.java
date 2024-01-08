@@ -3,6 +3,7 @@ package com.jamub.payaccess.api.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.CountryState;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.Merchant;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/settings")
-@Api(produces = "application/json", value = "Operations pertaining to Settings")
+@Api(produces = "application/json", description = "Operations pertaining to Settings")
 public class SettingsController {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -64,7 +65,7 @@ public class SettingsController {
     })
     public ResponseEntity updateMerchantBusinessData(MerchantBusinessInformationUpdateRequest merchantBusinessInformationUpdateRequest,
                                                         HttpServletRequest request,
-                                                        HttpServletResponse response) throws JsonProcessingException {
+                                                        HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
         if(authenticatedUser!=null)
@@ -154,7 +155,7 @@ public class SettingsController {
     public ResponseEntity updateMerchantTransactionFeePayer(@RequestBody @Valid MerchantTransactionFeePayerRequest merchantTransactionFeePayerRequest,
                                                             BindingResult bindingResult,
                                                         HttpServletRequest request,
-                                                               HttpServletResponse response) throws JsonProcessingException {
+                                                               HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -205,7 +206,7 @@ public class SettingsController {
     public ResponseEntity updateMerchantReceiveEarnings(@RequestBody @Valid MerchantReceiveEarningsRequest merchantReceiveEarningsRequest,
                                                         BindingResult bindingResult,
                                                                HttpServletRequest request,
-                                                               HttpServletResponse response) throws JsonProcessingException {
+                                                               HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -252,7 +253,7 @@ public class SettingsController {
     public ResponseEntity updateMerchantBusinessType(@RequestBody @Valid UpdateMerchantBusinessTypeRequest updateMerchantBusinessTypeRequest,
                                                      BindingResult bindingResult,
                                                            HttpServletRequest request,
-                                                           HttpServletResponse response) throws JsonProcessingException {
+                                                           HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -300,7 +301,7 @@ public class SettingsController {
     public ResponseEntity updateMerchantBusinessType(@RequestBody @Valid NotificationSettingRequest notificationSettingRequest,
                                                      BindingResult bindingResult,
                                                         HttpServletRequest request,
-                                                        HttpServletResponse response) throws JsonProcessingException {
+                                                        HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -347,7 +348,7 @@ public class SettingsController {
     public ResponseEntity updateMerchantSecurity(@RequestBody @Valid MerchantSecuritySettingRequest merchantSecuritySettingRequest,
                                                  BindingResult bindingResult,
                                                         HttpServletRequest request,
-                                                        HttpServletResponse response) throws JsonProcessingException {
+                                                        HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -392,7 +393,7 @@ public class SettingsController {
     public ResponseEntity updateMerchantPaymentSetting(@RequestBody @Valid MerchantPaymentSettingRequest merchantPaymentSettingRequest,
                                                        BindingResult bindingResult,
                                                     HttpServletRequest request,
-                                                    HttpServletResponse response) throws JsonProcessingException {
+                                                    HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -436,7 +437,7 @@ public class SettingsController {
     })
     public ResponseEntity getMerchantSettings(@PathVariable Long merchantId,
                                                           HttpServletRequest request,
-                                                          HttpServletResponse response) throws JsonProcessingException {
+                                                          HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
         if(authenticatedUser!=null)
@@ -465,7 +466,7 @@ public class SettingsController {
             @ApiResponse(code = 500, message = "Application failed to process the request")
     })
     public ResponseEntity getCountriesList(HttpServletRequest request,
-                                              HttpServletResponse response) throws JsonProcessingException {
+                                              HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
         if(authenticatedUser!=null)
@@ -502,7 +503,7 @@ public class SettingsController {
     })
     public ResponseEntity getStateListByCountry(@PathVariable String country,
                                            HttpServletRequest request,
-                                           HttpServletResponse response) throws JsonProcessingException {
+                                           HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
         if(authenticatedUser!=null)

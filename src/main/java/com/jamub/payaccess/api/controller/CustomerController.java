@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.Account;
 import com.jamub.payaccess.api.models.Customer;
 import com.jamub.payaccess.api.models.ErrorMessage;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/customer")
-@Api(produces = "application/json", value = "Operations pertaining to Wallet Customers. Not Yet Implemented")
+@Api(produces = "application/json", description = "Operations pertaining to Wallet Customers. Not Yet Implemented")
 public class CustomerController {
 
     @Autowired
@@ -90,7 +91,7 @@ public class CustomerController {
     public ResponseEntity updateMerchantBioData(@RequestBody @Valid CustomerBioDataUpdateRequest customerBioDataUpdateRequest,
                                                 BindingResult bindingResult,
                                                    HttpServletRequest request,
-                                                   HttpServletResponse response) throws JsonProcessingException {
+                                                   HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -125,7 +126,7 @@ public class CustomerController {
     public ResponseEntity createCustomerAccount(@RequestBody @Valid CustomerPinUpdateRequest customerPinUpdateRequest,
                                                 BindingResult bindingResult,
                                                         HttpServletRequest request,
-                                                        HttpServletResponse response) throws JsonProcessingException, NoSuchAlgorithmException {
+                                                        HttpServletResponse response) throws JsonProcessingException, NoSuchAlgorithmException, PayAccessAuthException {
 
 
 

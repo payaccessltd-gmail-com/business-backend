@@ -69,7 +69,9 @@ public enum Permission {
 
     VALIDATE_OTP_FOR_USER("Validate OTP for registered users"),
 
-    UPDATE_USER_STATUS("Update status of registered users");
+    UPDATE_USER_STATUS("Update status of registered users"),
+
+    RUN_SETTLEMENT("Run settlement");
 
     public final String value;
 

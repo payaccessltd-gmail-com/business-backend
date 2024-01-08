@@ -5,14 +5,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.enums.PaymentRequestType;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.*;
 import com.jamub.payaccess.api.models.request.*;
+import com.jamub.payaccess.api.models.response.ConfirmTransactionStatusResponse;
 import com.jamub.payaccess.api.models.response.ISWAuthTokenResponse;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.services.*;
 import io.swagger.annotations.*;
-import lombok.Getter;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.Entity;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
-@Api(produces = "application/json", value = "Operations pertaining to Transaction Management")
+@Api(produces = "application/json", description = "Operations pertaining to Transaction Management")
 public class TransactionController {
 
     @Autowired
@@ -66,7 +65,7 @@ public class TransactionController {
             @RequestBody @Valid TransactionFilterRequest transactionFilterRequest,
             BindingResult bindingResult,
             HttpServletRequest request,
-            HttpServletResponse response) throws JsonProcessingException {
+            HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -112,7 +111,7 @@ public class TransactionController {
             @PathVariable(required = false) Integer pageNumber,
             @RequestBody(required = false) TransactionFilterRequest transactionFilterRequest,
             HttpServletRequest request,
-            HttpServletResponse response) throws JsonProcessingException {
+            HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
         User authenticatedUser = tokenService.getUserFromToken(request);
 
 
@@ -139,7 +138,7 @@ public class TransactionController {
 
 
     @CrossOrigin
-    @PreAuthorize("hasRole('ROLE_DEBIT_CARD')")
+//    @PreAuthorize("hasRole('ROLE_DEBIT_CARD')")
     @RequestMapping(value="/debit-card", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Debit Card", response = ResponseEntity.class)
     @ApiResponses(value = {
@@ -203,6 +202,7 @@ public class TransactionController {
             logger.info("iswAuthTokenResponse .... {}", iswAuthTokenResponse);
 
 
+            logger.info("customData...{}", initiateTransactionRequest.getCustomData());
 
             return transactionService.debitCard(iswService, merchant, terminal,
                     initiateTransactionRequest, authorizationToken, deviceAuthorizationToken, iswAuthTokenResponse, paymentRequest, paymentRequestService);
@@ -244,7 +244,7 @@ public class TransactionController {
                                                     @PathVariable(required = true) String merchantCode,
                                                     @PathVariable(required = true) String orderRef,
                                                      HttpServletRequest request,
-                                                     HttpServletResponse response) throws JsonProcessingException {
+                                                     HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         User authenticatedUser = tokenService.getUserFromToken(request);
@@ -287,7 +287,7 @@ public class TransactionController {
     }
 
     @CrossOrigin
-    @PreAuthorize("hasRole('ROLE_AUTHORIZE_CARD_PAYMENT')")
+//    @PreAuthorize("hasRole('ROLE_AUTHORIZE_CARD_PAYMENT')")
     @RequestMapping(value="/authorize-card-payment-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Authorize Card Payment Using OTP", response = ResponseEntity.class)
     @ApiResponses(value = {
@@ -344,6 +344,15 @@ public class TransactionController {
 
         Transaction transaction = transactionService.getTransactionByOrderRef(authenticateCardPaymentOtpRequest.getOrderRef(), merchantCode);
 
+        if(transaction==null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.ENTITY_INSTANCE_NOT_FOUND.label);
+            payAccessResponse.setMessage("Invalid transaction. Transaction matching the reference not found");
+
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(payAccessResponse);
+        }
         try {
             ISWAuthTokenResponse iswAuthTokenResponse = iswService.getToken();
             logger.info("iswAuthTokenResponse .... {}", iswAuthTokenResponse);
@@ -365,5 +374,38 @@ public class TransactionController {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
         }
+    }
+
+
+
+
+    @CrossOrigin
+    @RequestMapping(value="/test-validate-transaction", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getTestValidateTransaction(
+            @RequestParam(required = true) String merchantCode,
+            @RequestParam(required = true) String orderRef,
+            HttpServletRequest request,
+            HttpServletResponse response) throws Exception {
+
+
+        ISWAuthTokenResponse iswAuthTokenResponse = iswService.getToken();
+        Transaction transaction = transactionService.getTransactionByOrderRef(orderRef, merchantCode);
+        ConfirmTransactionStatusResponse confirmTransactionStatusResponse = iswService.confirmTransactionStatus(transaction, iswAuthTokenResponse, paymentRequestService);
+
+        if(transaction!=null)
+        {
+            PayAccessResponse payAccessResponse = new  PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Transaction details found");
+            payAccessResponse.setResponseObject(confirmTransactionStatusResponse);
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+        }
+        PayAccessResponse payAccessResponse = new  PayAccessResponse();
+        payAccessResponse.setStatusCode(PayAccessStatusCode.ENTITY_INSTANCE_NOT_FOUND.label);
+        payAccessResponse.setResponseObject(confirmTransactionStatusResponse);
+        payAccessResponse.setMessage("Transaction not found. Please check Order Ref ensuring the order reference belongs to the merchant");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
+
+
     }
 }

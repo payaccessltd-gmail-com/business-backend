@@ -1,6 +1,7 @@
 package com.jamub.payaccess.api.enums;
 
 public enum UserRole {
+    SYSTEM("SYSTEM"),
     MERCHANT("MERCHANT"),
     ADMINISTRATOR("ADMINISTRATOR");
 

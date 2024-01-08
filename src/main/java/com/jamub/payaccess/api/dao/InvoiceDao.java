@@ -39,6 +39,7 @@ public class InvoiceDao implements Dao<Invoice>{
     private SimpleJdbcCall saveInvoiceBreakdown;
     private SimpleJdbcCall updateInvoice;
     private SimpleJdbcCall deleteInvoice;
+    private SimpleJdbcCall getInvoiceByInvoiceNumberAndMerchantId;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -97,6 +98,18 @@ public class InvoiceDao implements Dao<Invoice>{
 
         deleteInvoice = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("DeleteInvoice")
+                .returningResultSet("#result-set-1", new BeanPropertyRowMapper<Integer>()
+                {
+                    @Override
+                    public Integer mapRow(ResultSet rs, int rowNum) throws SQLException
+                    {
+                        return rs.getInt("count");
+                    }
+                });
+
+
+        getInvoiceByInvoiceNumberAndMerchantId = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("GetInvoiceByInvoiceNumberAndMerchantId")
                 .returningResultSet("#result-set-1", new BeanPropertyRowMapper<Integer>()
                 {
                     @Override
@@ -329,5 +342,21 @@ public class InvoiceDao implements Dao<Invoice>{
         Map<String, Object> m = deleteInvoice.execute(in);
         List<Integer> successCheck = (List<Integer>) m.get("#result-set-1");
         return successCheck.get(0);
+    }
+
+    public Optional<Invoice> getInvoiceByInvoiceNumberAndMerchantId(String invoiceNumber, Long merchantId) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("invoiceNumber", invoiceNumber)
+                .addValue("merchantId", merchantId);
+        Map<String, Object> m = getInvoiceByInvoiceNumberAndMerchantId.execute(in);
+
+        if(m.isEmpty()) {
+            return Optional.empty();
+        }
+        else
+        {
+            List<Invoice> result = (List<Invoice>) m.get("#result-set-1");
+            return Optional.of(result.get(0));
+        }
     }
 }

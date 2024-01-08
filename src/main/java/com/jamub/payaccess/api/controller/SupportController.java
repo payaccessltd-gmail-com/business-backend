@@ -3,6 +3,7 @@ package com.jamub.payaccess.api.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.*;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/support")
-@Api(produces = "application/json", value = "Operations pertaining to Support")
+@Api(produces = "application/json", description = "Operations pertaining to Support")
 public class SupportController {
 
 
@@ -59,7 +60,7 @@ public class SupportController {
     })
     public ResponseEntity createContactUsMessage(CreateContactUsRequest createContactUsRequest,
                                                     HttpServletRequest request,
-                                                    HttpServletResponse response) throws JsonProcessingException {
+                                                    HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -142,7 +143,7 @@ public class SupportController {
     public ResponseEntity createFeedbackMessage(@RequestBody @Valid CreateFeedbackRequest createFeedbackRequest,
                                                 BindingResult bindingResult,
                                                     HttpServletRequest request,
-                                                    HttpServletResponse response) throws JsonProcessingException {
+                                                    HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 

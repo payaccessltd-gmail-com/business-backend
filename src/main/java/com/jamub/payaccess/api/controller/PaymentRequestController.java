@@ -1,15 +1,11 @@
 package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jamub.payaccess.api.enums.ApplicationAction;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
-import com.jamub.payaccess.api.models.Bank;
-import com.jamub.payaccess.api.models.ErrorMessage;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.PaymentRequest;
 import com.jamub.payaccess.api.models.User;
-import com.jamub.payaccess.api.models.request.CreateBankRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
-import com.jamub.payaccess.api.services.BankService;
 import com.jamub.payaccess.api.services.PaymentRequestService;
 import com.jamub.payaccess.api.services.TokenService;
 import io.swagger.annotations.*;
@@ -20,20 +16,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 @RestController
 @RequestMapping("/api/v1/payment-request")
-@Api(produces = "application/json", value = "Operations pertaining to Requests From Payments")
+@Api(produces = "application/json", description = "Operations pertaining to Requests From Payments")
 public class PaymentRequestController {
 
 
@@ -60,7 +52,7 @@ public class PaymentRequestController {
     public ResponseEntity getPaymentRequests(
             @PathVariable(required = true) Integer pageNumber,
             @PathVariable(required = false) Integer pageSize,
-            HttpServletRequest request, HttpServletResponse response) throws JsonProcessingException {
+            HttpServletRequest request, HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -99,7 +91,7 @@ public class PaymentRequestController {
     })
     public ResponseEntity getPaymentRequestById(
             @PathVariable(required = true) Long paymentRequestId,
-            HttpServletRequest request, HttpServletResponse response) throws JsonProcessingException {
+            HttpServletRequest request, HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 

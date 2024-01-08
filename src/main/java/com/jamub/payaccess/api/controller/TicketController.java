@@ -5,6 +5,7 @@ import com.jamub.payaccess.api.enums.ApplicationAction;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.enums.TicketStatus;
 import com.jamub.payaccess.api.enums.UserRole;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.*;
 import com.jamub.payaccess.api.models.request.AssignTransactionTicketRequest;
 import com.jamub.payaccess.api.models.request.CloseTransactionTicketRequest;
@@ -17,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/tickets")
-@Api(produces = "application/json", value = "Operations pertaining to Support Tickets")
+@Api(produces = "application/json", description = "Operations pertaining to Support Tickets")
 public class TicketController {
 
 
@@ -65,7 +65,7 @@ public class TicketController {
     public ResponseEntity createTransactionTicket(@Valid CreateTransactionTicketRequest createTransactionTicketRequest,
                                                   BindingResult bindingResult,
                                                   HttpServletRequest request,
-                                                  HttpServletResponse response) throws JsonProcessingException {
+                                                  HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -125,7 +125,7 @@ public class TicketController {
     public ResponseEntity assignTransactionTicket(@RequestBody @Valid AssignTransactionTicketRequest assignTransactionTicketRequest,
                                                   BindingResult bindingResult,
                                                   HttpServletRequest request,
-                                                  HttpServletResponse response) throws JsonProcessingException {
+                                                  HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -205,7 +205,7 @@ public class TicketController {
     public ResponseEntity closeTicket(@RequestBody @Valid CloseTransactionTicketRequest closeTransactionTicketRequest,
                                                   BindingResult bindingResult,
                                                   HttpServletRequest request,
-                                                  HttpServletResponse response) throws JsonProcessingException {
+                                                  HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -273,7 +273,7 @@ public class TicketController {
                                       @PathVariable(required = true) Integer rowCount,
                                       @PathVariable(required = false) Integer pageNumber,
                                       HttpServletRequest request,
-                                      HttpServletResponse response) throws JsonProcessingException {
+                                      HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 

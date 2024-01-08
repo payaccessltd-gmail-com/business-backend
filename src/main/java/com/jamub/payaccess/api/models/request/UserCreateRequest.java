@@ -26,8 +26,5 @@ public class UserCreateRequest extends BaseRequest{
 
     @NotNull(message = "Incomplete request parameters. Users role not provided")
     @Pattern(regexp = "MERCHANT|ADMINISTRATOR|^\\s$", flags = Pattern.Flag.UNICODE_CASE, message = "Must be one of the following: MERCHANT, ADMINISTRATOR")
-    private UserRole userRole;
-
-    @NotNull(message = "Incomplete request parameters. User identification not provided")
-    private Long userId;
+    private String userRole;
 }

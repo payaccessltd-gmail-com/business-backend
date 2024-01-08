@@ -2,6 +2,7 @@ package com.jamub.payaccess.api.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
@@ -13,22 +14,20 @@ import com.jamub.payaccess.api.enums.PayAccessStatusCode;
 import com.jamub.payaccess.api.enums.TransactionStatus;
 import com.jamub.payaccess.api.models.PaymentRequest;
 import com.jamub.payaccess.api.models.Terminal;
-import com.jamub.payaccess.api.models.response.AuthOTPResponse;
-import com.jamub.payaccess.api.models.response.ISWCardPaymentResponse;
+import com.jamub.payaccess.api.models.response.*;
 import com.jamub.payaccess.api.models.Merchant;
 import com.jamub.payaccess.api.models.Transaction;
 import com.jamub.payaccess.api.models.request.*;
-import com.jamub.payaccess.api.models.response.ISWAuthTokenResponse;
-import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.NoSuchAlgorithmException;
@@ -246,13 +245,13 @@ public class TransactionService {
             if(authOTPResponse!=null && authOTPResponse.getResponseCode().equals("00"))
             {
                 transaction.setSwitchTransactionRef(authOTPResponse.getTransactionIdentifier());
-                transaction.setTransactionStatus(TransactionStatus.SUCCESS);
+                transaction.setTransactionStatus(TransactionStatus.PENDING_CONFIRMATION);
                 transaction = transactionDao.updateTransaction(transaction);
 
 
                 payAccessResponse.setResponseObject(transaction);
-                payAccessResponse.setMessage("Payment was successful");
-                payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+                payAccessResponse.setMessage("Payment was successful pending confirmation");
+                payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS_PENDING_CONFIRMATION.label);
 
 
                 paymentRequest.setResponseBody(new ObjectMapper()
@@ -261,7 +260,28 @@ public class TransactionService {
                         .registerModule(new JavaTimeModule()).writeValueAsString(payAccessResponse));
                 paymentRequest = paymentRequestService.updatePaymentRequest(paymentRequest);
 
-                return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+
+
+                ConfirmTransactionStatusResponse confirmTransactionStatusResponse = iswService.confirmTransactionStatus(transaction, iswAuthTokenResponse, paymentRequestService);
+
+                if(confirmTransactionStatusResponse!=null && confirmTransactionStatusResponse.getResponseCode().equals("00"))
+                {
+
+                    transaction.setSwitchTransactionRef(authOTPResponse.getTransactionIdentifier());
+                    transaction.setTransactionStatus(TransactionStatus.SUCCESS);
+                    transaction = transactionDao.updateTransaction(transaction);
+                    payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+                    payAccessResponse.setMessage("Payment was successful");
+                    payAccessResponse.setResponseObject(transaction);
+
+                    return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+                }
+                payAccessResponse.setResponseObject(transaction);
+
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body(payAccessResponse);
+
+
+
             }
             else
             {
@@ -295,6 +315,7 @@ public class TransactionService {
             throw new RuntimeException(e);
         }
     }
+
 
     public Transaction getTransactionByOrderRef(String orderRef, String merchantCode) {
         Transaction transaction = transactionDao.getTransactionByOrderRef(orderRef, merchantCode);

@@ -36,5 +36,6 @@ public class InitiateTransactionRequest {
     private Card cardDetails;
     @NotBlank(message = "Incomplete request parameters. Customer identification not provided")
     private String customerId;
+    private String customData;
 
 }

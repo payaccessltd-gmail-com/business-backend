@@ -242,8 +242,22 @@ public class MerchantService {
 
     public ResponseEntity approveMerchant(String merchantCode)
     {
-        Merchant queryResponse = merchantDao.approveMerchant(merchantCode);
+        List merchantCheckList = merchantDao.getMerchantByMerchantCode(merchantCode);
         PayAccessResponse payAccessResponse = new PayAccessResponse();
+        if(merchantCheckList!=null && !merchantCheckList.isEmpty())
+        {
+            Merchant merchant = (Merchant) merchantCheckList.get(0);
+            Boolean check = UtilityHelper.checkIfMerchantValidForApproval(merchant, merchantDao.getMerchantApproval(merchantCode));
+
+            if(check.equals(Boolean.FALSE))
+            {
+                payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
+                payAccessResponse.setMessage("Merchant approval failed. Merchant approval status must have gone through all approval stages before it can be approved");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
+            }
+        }
+
+        Merchant queryResponse = merchantDao.approveMerchant(merchantCode);
         payAccessResponse.setResponseObject(queryResponse);
         if(queryResponse!=null)
         {
@@ -252,7 +266,7 @@ public class MerchantService {
             return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
         payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
-        payAccessResponse.setMessage("Merchant approval failed. Invalid merchant code provided");
+        payAccessResponse.setMessage("Merchant approval failed. Merchant approval status must have gone through all approval stages before it can be approved");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
 //        return null;
     }

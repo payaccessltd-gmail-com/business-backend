@@ -23,7 +23,6 @@ public class MerchantReviewUpdateStatusRequest extends BaseRequest{
     @Pattern(regexp = "REJECTED|REQUEST_UPDATE|APPROVED|^\\s$", flags = Pattern.Flag.UNICODE_CASE, message = "Must be one of the following: REJECTED, REQUEST_UPDATE, APPROVED")
     private String merchantReviewStatus;
 
-    @NotBlank(message = "Incomplete request parameters. Reason key not provided")
     private String reason;
 
 }

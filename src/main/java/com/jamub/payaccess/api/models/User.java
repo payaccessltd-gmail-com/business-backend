@@ -58,4 +58,10 @@ public class User implements Serializable {
     private Boolean twoFactorAuthForLogin;
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
+    @Column(nullable= false)
+    private Date createdAt;
+    @Column(nullable= true)
+    private Date deletedAt;
+    @Column(nullable= true)
+    private Date updatedAt;
 }

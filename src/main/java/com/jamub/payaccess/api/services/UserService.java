@@ -163,6 +163,7 @@ public class UserService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payAccessResponse);
         }
         String password = RandomStringUtils.randomAlphanumeric(8);
+        logger.info("admin password {}", password);
         Long actorId = authenticatedUser.getId();
         String carriedOutByUserFullName = authenticatedUser.getFirstName() + " " + authenticatedUser.getLastName();
         String objectClassReference = User.class.getCanonicalName();
@@ -215,7 +216,7 @@ public class UserService {
 
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
-            payAccessResponse.setMessage("A welcome email containing the administrators password has been sent to the email - '"+userCreateRequest.getEmailAddress().toLowerCase()+"'. Please check your email to complete your registration.");
+            payAccessResponse.setMessage("A welcome email containing the administrators password has been sent to the email - '"+userCreateRequest.getEmailAddress().toLowerCase()+"'. Your password is in the email sent to you.");
             return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
@@ -227,9 +228,9 @@ public class UserService {
 
 
 
-    public ResponseEntity updateAdminUser(UserCreateRequest userCreateRequest, String ipAddress, User authenticatedUser) {
-        Optional<User> existingUser = userDao.get(userCreateRequest.getUserId());
-        if(existingUser!=null && !existingUser.isPresent() && existingUser.get().getId()!=userCreateRequest.getUserId())
+    public ResponseEntity updateAdminUser(UserUpdateRequest userUpdateRequest, String ipAddress, User authenticatedUser) {
+        Optional<User> existingUser = userDao.get(userUpdateRequest.getUserId());
+        if(existingUser!=null && !existingUser.isPresent() && existingUser.get().getId()!=userUpdateRequest.getUserId())
         {
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
@@ -248,10 +249,10 @@ public class UserService {
         Long actorId = authenticatedUser.getId();
         String carriedOutByUserFullName = authenticatedUser.getFirstName() + " " + authenticatedUser.getLastName();
         String objectClassReference = User.class.getCanonicalName();
-        String description = "Update Administrator profile for " + userCreateRequest.getFirstName().toUpperCase() + " " + userCreateRequest.getLastName().toUpperCase()
-                + " ("+userCreateRequest.getEmailAddress()+ ")";
+        String description = "Update Administrator profile for " + userUpdateRequest.getFirstName().toUpperCase() + " " + userUpdateRequest.getLastName().toUpperCase()
+                + " ("+userUpdateRequest.getEmailAddress()+ ")";
         ApplicationAction userAction = ApplicationAction.UPDATE_ADMIN_USER;
-        user = userDao.updateAdminUser(userCreateRequest,
+        user = userDao.updateAdminUser(userUpdateRequest,
                 carriedOutByUserFullName, actorId, userAction,
                 description, ipAddress, objectClassReference);
         if(user!=null)
@@ -338,22 +339,31 @@ public class UserService {
 
         List<User> userList = (List<User>) m.get("#result-set-1");
 
-        User user = userList.get(0);
+        if(userList!=null && !userList.isEmpty()) {
+            User user = userList.get(0);
 
-        if(user==null)
+            if (user == null) {
+                payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
+                payAccessResponse.setMessage("Your profile activation was not successful. Profile could not be found. Please try again");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
+            }
+
+
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            payAccessResponse.setMessage("Your profile has been activated successfully");
+            String userToString = objectMapper.writeValueAsString(user);
+            UserDTO userDto = objectMapper.readValue(userToString, UserDTO.class);
+            payAccessResponse.setResponseObject(userDto);
+            return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
+        }
+        else
         {
             payAccessResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
-            payAccessResponse.setMessage("Your profile activation was not successful. Please try again");
+            payAccessResponse.setMessage("Your profile activation was not successful. Invalid activation link or OTP provided. Please try again");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
         }
 
 
-        payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
-        payAccessResponse.setMessage("Your profile has been activated successfully");
-        String userToString = objectMapper.writeValueAsString(user);
-        UserDTO userDto = objectMapper.readValue(userToString, UserDTO.class);
-        payAccessResponse.setResponseObject(userDto);
-        return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
     }
 
     public ResponseEntity getUsersList(Integer pageNumber, int pageSize, FilterUserRequest filterUserRequest) {
@@ -491,7 +501,30 @@ public class UserService {
 
         LocalDateTime otpExpiryDate = LocalDateTime.now().plusSeconds(otpExpiryPeriod);
         String otp = RandomStringUtils.randomNumeric(4);
-        User user = userDao.updateUserForgotPasswordLink(emailAddress, forgotPasswordLink, otp, otpExpiryDate);
+        List<User> userCheckList = userDao.getUserByEmailAddress(emailAddress);
+        User userCheck = null;
+        if(userCheckList!=null && !userCheckList.isEmpty())
+        {
+            userCheck = userCheckList.get(0);
+        }
+
+        if(userCheck==null)
+        {
+            PayAccessResponse tokenResponse = new PayAccessResponse();
+            tokenResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+            tokenResponse.setResponseObject(forgotPasswordLink);
+            tokenResponse.setMessage("An email containing a link to recover your password has been sent to you");
+            return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
+        }
+
+
+        User user = null;
+        if(userCheck.getUserRole().equals(UserRole.MERCHANT))
+            user = userDao.updateUserForgotPasswordLink(emailAddress, forgotPasswordLink, otp, otpExpiryDate);
+        else if(userCheck.getUserRole().equals(UserRole.ADMINISTRATOR))
+            user = userDao.updateUserForgotPasswordLinkForAdmin(emailAddress, forgotPasswordLink);
+
+
         if(user!=null)
         {
 
@@ -510,7 +543,11 @@ public class UserService {
                 msg.setRecipients(Message.RecipientType.TO, addrs);
 
                 msg.setSubject("Recover Password");
-                msg.setText("OTP to recover your password is - "+otp + ". Click the link to complete the process - " + forgotPasswordEndpoint);
+
+                if(user.getUserRole().equals(UserRole.MERCHANT))
+                    msg.setText("OTP to recover your password is - "+otp + ". Click the link to complete the process - " + forgotPasswordEndpoint);
+                else
+                    msg.setText("Click the link to complete the process - " + forgotPasswordEndpoint);
 
                 msg.setSentDate(new Date());
 
@@ -537,9 +574,10 @@ public class UserService {
         }
 
         PayAccessResponse tokenResponse = new PayAccessResponse();
-        tokenResponse.setStatusCode(PayAccessStatusCode.GENERAL_ERROR.label);
-        tokenResponse.setMessage("Invalid action. We could not recover your password");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(tokenResponse);
+        tokenResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
+        tokenResponse.setResponseObject(forgotPasswordLink);
+        tokenResponse.setMessage("An email containing a link to recover your password has been sent to you");
+        return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
     }
 
 
@@ -599,7 +637,7 @@ public class UserService {
 
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
-            payAccessResponse.setMessage("Password has been reset successfully");
+            payAccessResponse.setMessage("Password Recovery Successful. Please proceed to provide a secure password");
             return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }
 
@@ -650,7 +688,7 @@ public class UserService {
 //            }
 
             PayAccessResponse payAccessResponse = new PayAccessResponse();
-            payAccessResponse.setStatusCode("00");
+            payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
             payAccessResponse.setMessage("Password has been reset successfully");
             return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
         }

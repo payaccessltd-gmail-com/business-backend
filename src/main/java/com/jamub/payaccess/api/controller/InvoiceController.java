@@ -1,13 +1,13 @@
 package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.zxing.WriterException;
 import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.DiscountType;
 import com.jamub.payaccess.api.enums.InvoiceStatus;
 import com.jamub.payaccess.api.enums.InvoiceType;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.*;
 import com.jamub.payaccess.api.models.request.*;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/invoice")
-@Api(produces = "application/json", value = "Operations pertaining to Invoices.")
+@Api(produces = "application/json", description = "Operations pertaining to Invoices.")
 public class InvoiceController {
 
     @Autowired
@@ -95,7 +95,7 @@ public class InvoiceController {
     public ResponseEntity createSimpleInvoice(@Valid CreateSimpleInvoiceRequest createSimpleInvoiceRequest,
                                               BindingResult bindingResult,
                                                     HttpServletRequest request,
-                                                    HttpServletResponse response) throws JsonProcessingException {
+                                                    HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         if (bindingResult.hasErrors()) {
@@ -217,7 +217,7 @@ public class InvoiceController {
     public ResponseEntity createStandardInvoice(@RequestBody @Valid StandardInvoiceRequest standardInvoiceRequest,
                                                 BindingResult bindingResult,
                                                  HttpServletRequest request,
-                                                 HttpServletResponse response) throws JsonProcessingException {
+                                                 HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -305,7 +305,7 @@ public class InvoiceController {
     public ResponseEntity resendInvoiceEmail(@PathVariable Long invoiceId,
                                                 @PathVariable Long merchantId,
                                                  HttpServletRequest request,
-                                                 HttpServletResponse response) throws JsonProcessingException {
+                                                 HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -357,9 +357,9 @@ public class InvoiceController {
 
     @CrossOrigin
     //MARK_INVOICE_AS_PAID
-    @PreAuthorize("hasRole('ROLE_MARK_INVOICE_AS_PAID')")
-    @RequestMapping(value = "/mark-invoice-paid/{invoiceId}/{merchantId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
+//    @PreAuthorize("hasRole('ROLE_MARK_INVOICE_AS_PAID')")
+    @RequestMapping(value = "/mark-invoice-paid/{invoiceNumber}/{merchantCode}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Mark Invoice As Paid", response = ResponseEntity.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successful"),
@@ -367,19 +367,19 @@ public class InvoiceController {
             @ApiResponse(code = 403, message = "Access to API denied due to invalid token"),
             @ApiResponse(code = 500, message = "Application failed to process the request")
     })
-    public ResponseEntity markInvoicePaid(@PathVariable Long invoiceId,
-                                             @PathVariable Long merchantId,
+    public ResponseEntity markInvoicePaid(@PathVariable String invoiceNumber,
+                                             @PathVariable String merchantCode,
                                                  HttpServletRequest request,
-                                                 HttpServletResponse response) throws JsonProcessingException {
+                                                 HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
-        User authenticatedUser = tokenService.getUserFromToken(request);
-        if(authenticatedUser!=null)
-        {
-            Invoice invoice = invoiceService.getInvoice(invoiceId, merchantId);
+//        User authenticatedUser = tokenService.getUserFromToken(request);
+//        if(authenticatedUser!=null)
+//        {
+            Invoice invoice = invoiceService.getInvoiceByInvoiceNumberAndMerchantCode(invoiceNumber, merchantCode);
 
-            if(invoice!=null && invoice.getCreatedByUserId().equals(authenticatedUser.getId()))
-            {
-                logger.info("{}....{}", authenticatedUser.getId(), invoice.getCreatedByUserId());
+//            if(invoice!=null && invoice.getCreatedByUserId().equals(authenticatedUser.getId()))
+//            {
+//                logger.info("{}....{}", authenticatedUser.getId(), invoice.getCreatedByUserId());
 
                 invoice.setInvoiceStatus(InvoiceStatus.PAID);
                 invoice = invoiceService.updateInvoice(invoice);
@@ -390,20 +390,20 @@ public class InvoiceController {
                     payAccessResponse.setMessage("Invoice update was successful");
                     return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
                 }
-            }
+//            }
 
             PayAccessResponse payAccessResponse = new  PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.FAIL.label);
             payAccessResponse.setMessage("Invalid action. Ensure this invoice is still available to be deleted and belongs to you");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payAccessResponse);
-        }
+//        }
 
 
 
-        PayAccessResponse payAccessResponse = new  PayAccessResponse();
-        payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
-        payAccessResponse.setMessage("Authorization not granted. Token expired");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(payAccessResponse);
+//        PayAccessResponse payAccessResponse = new  PayAccessResponse();
+//        payAccessResponse.setStatusCode(PayAccessStatusCode.AUTHORIZATION_FAILED.label);
+//        payAccessResponse.setMessage("Authorization not granted. Token expired");
+//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(payAccessResponse);
 
 
     }
@@ -424,7 +424,7 @@ public class InvoiceController {
     public ResponseEntity deleteInvoice(@PathVariable Long invoiceId,
                                            @PathVariable Long merchantId,
                                              HttpServletRequest request,
-                                             HttpServletResponse response) throws JsonProcessingException {
+                                             HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -477,7 +477,7 @@ public class InvoiceController {
     public ResponseEntity filterInvoice(@RequestBody @Valid InvoiceSearchFilterRequest invoiceSearchFilterRequest,
                                         BindingResult bindingResult,
                                            HttpServletRequest request,
-                                           HttpServletResponse response) throws JsonProcessingException {
+                                           HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         if (bindingResult.hasErrors()) {
@@ -532,7 +532,7 @@ public class InvoiceController {
     public ResponseEntity getInvoiceDetails(@PathVariable Long invoiceId,
                                                 @PathVariable Long merchantId,
                                                 HttpServletRequest request,
-                                                HttpServletResponse response) throws JsonProcessingException {
+                                                HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         User authenticatedUser = tokenService.getUserFromToken(request);
@@ -651,7 +651,7 @@ public class InvoiceController {
                                          @PathVariable(required = false) Integer pageNumber,
                                          @RequestBody GetInvoiceFilterRequest getInvoiceFilterRequest,
                                          HttpServletRequest request,
-                                         HttpServletResponse response) throws JsonProcessingException {
+                                         HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 
@@ -683,7 +683,7 @@ public class InvoiceController {
     public ResponseEntity getInvoiceBreakdown(@PathVariable Long merchantId,
                                                  @PathVariable Long invoiceId,
                                                  HttpServletRequest request,
-                                                 HttpServletResponse response) throws JsonProcessingException {
+                                                 HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
         User authenticatedUser = tokenService.getUserFromToken(request);

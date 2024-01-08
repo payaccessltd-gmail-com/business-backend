@@ -1,9 +1,9 @@
 package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.APIMode;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.Merchant;
 import com.jamub.payaccess.api.models.MerchantCredential;
@@ -21,20 +21,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 
 @RestController
 @RequestMapping("/api/v1/developer")
-@Api(produces = "application/json", value = "Operations pertaining to Developer Section.")
+@Api(produces = "application/json", description = "Operations pertaining to Developer Section.")
 public class DeveloperController {
 
 
@@ -63,7 +60,7 @@ public class DeveloperController {
     public ResponseEntity updateMerchantBusinessData(@RequestBody @Valid GenerateNewMerchantKeyRequest generateNewMerchantKeyRequest,
                                                      BindingResult bindingResult,
                                                         HttpServletRequest request,
-                                                        HttpServletResponse response) throws JsonProcessingException {
+                                                        HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -131,7 +128,7 @@ public class DeveloperController {
     })
     public ResponseEntity getMerchantKeys(@PathVariable Long merchantId,
                                                         HttpServletRequest request,
-                                                        HttpServletResponse response) throws JsonProcessingException {
+                                                        HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
         if(authenticatedUser!=null)
@@ -179,7 +176,7 @@ public class DeveloperController {
     public ResponseEntity updateMerchantCallbackWebhook(@RequestBody @Valid UpdateMerchantCallbackRequest updateMerchantCallbackRequest,
                                                         BindingResult bindingResult,
                                                         HttpServletRequest request,
-                                                               HttpServletResponse response) throws JsonProcessingException {
+                                                               HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 

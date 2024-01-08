@@ -2,11 +2,11 @@ package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.Account;
 import com.jamub.payaccess.api.models.Customer;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.User;
-import com.jamub.payaccess.api.models.request.ActivateAccountRequest;
 import com.jamub.payaccess.api.models.request.CustomerBioDataUpdateRequest;
 import com.jamub.payaccess.api.models.request.CustomerPinUpdateRequest;
 import com.jamub.payaccess.api.models.request.CustomerSignUpRequest;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/bills")
-@Api(produces = "application/json", value = "Operations pertaining to Bills. Not Yet Implemented")
+@Api(produces = "application/json", description = "Operations pertaining to Bills. Not Yet Implemented")
 public class BillPaymentController {
 
     @Autowired
@@ -90,7 +90,7 @@ public class BillPaymentController {
     public ResponseEntity updateMerchantBioData(@RequestBody @Valid CustomerBioDataUpdateRequest customerBioDataUpdateRequest,
                                                 BindingResult bindingResult,
                                                    HttpServletRequest request,
-                                                   HttpServletResponse response) throws JsonProcessingException {
+                                                   HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -125,7 +125,7 @@ public class BillPaymentController {
     public ResponseEntity createCustomerAccount(@RequestBody @Valid CustomerPinUpdateRequest customerPinUpdateRequest,
                                                 BindingResult bindingResult,
                                                         HttpServletRequest request,
-                                                        HttpServletResponse response) throws JsonProcessingException, NoSuchAlgorithmException {
+                                                        HttpServletResponse response) throws JsonProcessingException, NoSuchAlgorithmException, PayAccessAuthException {
 
 
 

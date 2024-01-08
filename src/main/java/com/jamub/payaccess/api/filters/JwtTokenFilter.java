@@ -8,6 +8,7 @@ import com.jamub.payaccess.api.models.response.PayAccessResponse;
 import com.jamub.payaccess.api.providers.TokenProvider;
 import com.jamub.payaccess.api.services.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -71,12 +72,32 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             Map<String, String> errors = new HashMap<>();
             PayAccessResponse payAccessResponse = new PayAccessResponse();
             payAccessResponse.setStatusCode(PayAccessStatusCode.AUTH_TOKEN_EXPIRED.label);
-            payAccessResponse.setMessage("Token expired. Please provide a new token1");
+            payAccessResponse.setMessage("Token expired. Please provide a new token");
             payAccessResponse.setResponseObject(errors);
 
             PrintWriter out = response.getWriter();
             response.setContentType("application/json");
             response.setStatus(HttpStatus.BAD_REQUEST.value());
+//            response.getWriter().write(new ObjectMapper().writeValueAsString(payAccessResponse));
+            out.print(new ObjectMapper().writeValueAsString(payAccessResponse));
+            out.flush();
+
+
+            return;
+        }
+        catch(UnsupportedJwtException e)
+        {
+            e.printStackTrace();
+            logger.info("Exception occured");
+            Map<String, String> errors = new HashMap<>();
+            PayAccessResponse payAccessResponse = new PayAccessResponse();
+            payAccessResponse.setStatusCode(PayAccessStatusCode.INVALID_AUTH_TOKEN.label);
+            payAccessResponse.setMessage("Invalid token identifier. Please provide a valid authentication token");
+            payAccessResponse.setResponseObject(errors);
+
+            PrintWriter out = response.getWriter();
+            response.setContentType("application/json");
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
 //            response.getWriter().write(new ObjectMapper().writeValueAsString(payAccessResponse));
             out.print(new ObjectMapper().writeValueAsString(payAccessResponse));
             out.flush();
@@ -90,9 +111,15 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         User user = userService.getUserByEmailAddress(username);
         List<UserRolePermission> userRolePermissionList = userService.getPermissionsByRole(user.getUserRole().name());
         Set<SimpleGrantedAuthority> authorities = new HashSet<>();
-        Set authList = userRolePermissionList.stream().map(urp -> {
-            return new SimpleGrantedAuthority("ROLE_" +urp.getPermission().name());
-        }).collect(Collectors.toSet());
+
+        Set authList = new HashSet();
+        if(userRolePermissionList!=null && !userRolePermissionList.isEmpty())
+        {
+            authList = userRolePermissionList.stream().map(urp -> {
+                return new SimpleGrantedAuthority("ROLE_" +urp.getPermission().name());
+            }).collect(Collectors.toSet());
+        }
+
 
         logger.info(authList);
 

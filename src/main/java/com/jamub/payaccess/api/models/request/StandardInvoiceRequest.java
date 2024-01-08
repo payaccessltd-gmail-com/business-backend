@@ -37,7 +37,7 @@ public class StandardInvoiceRequest extends BaseRequest{
     private String invoiceNote;
 
     @NotNull(message = "Incomplete request parameters. Invoice breakdown list of the items key is missing")
-    private List<InvoiceBreakdown> invoiceBreakdownList;
+    private List<InvoiceBreakdownRequest> invoiceBreakdownList;
 
     @NotNull(message = "Incomplete request parameters. Tax percentage key not provided")
     private BigDecimal taxPercent;

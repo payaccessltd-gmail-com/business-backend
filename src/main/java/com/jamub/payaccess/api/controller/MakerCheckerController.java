@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jamub.payaccess.api.enums.ApplicationAction;
 import com.jamub.payaccess.api.enums.MakerCheckerType;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.*;
 import com.jamub.payaccess.api.models.request.MerchantApprovalMakerCheckerRequest;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
@@ -27,8 +28,8 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/maker-checker")
-@Api(produces = "application/json", value = "Operations pertaining to Maker-Checker")
-public class MerchantApprovalMakerCheckerController {
+@Api(produces = "application/json", description = "Operations pertaining to Maker-Checker")
+public class MakerCheckerController {
 
 
     @Autowired
@@ -53,7 +54,7 @@ public class MerchantApprovalMakerCheckerController {
     public ResponseEntity createMakerChecker(@RequestBody @Valid MerchantApprovalMakerCheckerRequest merchantApprovalMakerCheckerRequest,
                                                   BindingResult bindingResult,
                                                   HttpServletRequest request,
-                                                  HttpServletResponse response) throws JsonProcessingException {
+                                                  HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
 
@@ -112,7 +113,7 @@ public class MerchantApprovalMakerCheckerController {
     @CrossOrigin
     //VIEW_MAKER_CHECKER
     @PreAuthorize("hasRole('ROLE_VIEW_MAKER_CHECKER')")
-    @RequestMapping(value = "/get-maker-checker-by-user/{emailAddress}/{makerCheckerType}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/get-maker-checker-by-user/{emailAddress}/{makerCheckerType}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
     @ApiOperation(value = "Get List of Maker Checker By User Email Address", response = ResponseEntity.class)
     @ApiResponses(value = {
@@ -123,23 +124,10 @@ public class MerchantApprovalMakerCheckerController {
     })
     public ResponseEntity getMakerCheckerByUser(@PathVariable(required = true) String emailAddress,
                                                 @PathVariable(required = true) String makerCheckerType,
-                                                             BindingResult bindingResult,
                                                              HttpServletRequest request,
-                                                             HttpServletResponse response) throws JsonProcessingException {
+                                                             HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
 
-
-        if (bindingResult.hasErrors()) {
-            List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
-                return new ErrorMessage(fe.getField(), fe.getDefaultMessage());
-            }).collect(Collectors.toList());
-
-            PayAccessResponse payAccessResponse = new PayAccessResponse();
-            payAccessResponse.setResponseObject(errorMessageList);
-            payAccessResponse.setStatusCode(PayAccessStatusCode.VALIDATION_FAILED.label);
-            payAccessResponse.setMessage("Request validation failed");
-            return ResponseEntity.badRequest().body(payAccessResponse);
-        }
         User authenticatedUser = tokenService.getUserFromToken(request);
 
 
@@ -194,7 +182,7 @@ public class MerchantApprovalMakerCheckerController {
                                      @PathVariable(required = true) Integer rowCount,
                                      @PathVariable(required = true) Integer pageNumber,
                                       HttpServletRequest request,
-                                      HttpServletResponse response) throws JsonProcessingException {
+                                      HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
 
         User authenticatedUser = tokenService.getUserFromToken(request);
 

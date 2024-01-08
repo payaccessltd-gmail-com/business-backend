@@ -1,15 +1,13 @@
 package com.jamub.payaccess.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jamub.payaccess.api.dao.util.UtilityHelper;
 import com.jamub.payaccess.api.enums.PayAccessStatusCode;
-import com.jamub.payaccess.api.models.Account;
-import com.jamub.payaccess.api.models.Customer;
+import com.jamub.payaccess.api.exception.PayAccessAuthException;
 import com.jamub.payaccess.api.models.ErrorMessage;
 import com.jamub.payaccess.api.models.User;
 import com.jamub.payaccess.api.models.request.*;
 import com.jamub.payaccess.api.models.response.PayAccessResponse;
-import com.jamub.payaccess.api.services.AccountService;
-import com.jamub.payaccess.api.services.CustomerService;
 import com.jamub.payaccess.api.services.TokenService;
 import com.jamub.payaccess.api.services.UserService;
 import io.swagger.annotations.*;
@@ -29,13 +27,12 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/user")
-@Api(produces = "application/json", value = "Operations pertaining to User Management")
+@Api(produces = "application/json", description = "Operations pertaining to User Management")
 public class UserController {
 
     @Autowired
@@ -77,7 +74,7 @@ public class UserController {
     public ResponseEntity newAdminUser(@RequestBody @Valid UserCreateRequest userCreateRequest,
                                        BindingResult bindingResult,
                                      HttpServletRequest request,
-                                     HttpServletResponse response) {
+                                     HttpServletResponse response) throws PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -136,10 +133,10 @@ public class UserController {
             @ApiResponse(code = 403, message = "Access to API denied due to invalid token"),
             @ApiResponse(code = 500, message = "Application failed to process the request")
     })
-    public ResponseEntity updateAdminUser(@RequestBody @Valid UserCreateRequest userCreateRequest,
+    public ResponseEntity updateAdminUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest,
                                           BindingResult bindingResult,
                                           HttpServletRequest request,
-                                          HttpServletResponse response) {
+                                          HttpServletResponse response) throws PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -167,7 +164,7 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(payAccessResponse);
             }
 
-            if(userCreateRequest.getUserId()==null)
+            if(userUpdateRequest.getUserId()==null)
             {
                 PayAccessResponse payAccessResponse = new  PayAccessResponse();
                 payAccessResponse.setStatusCode(PayAccessStatusCode.INVALID_PARAMETER.label);
@@ -180,7 +177,7 @@ public class UserController {
                 ipAddress = request.getRemoteAddr();
             }
 
-            return userService.updateAdminUser(userCreateRequest, ipAddress, authenticatedUser);
+            return userService.updateAdminUser(userUpdateRequest, ipAddress, authenticatedUser);
         }
         catch(Exception e)
         {
@@ -261,7 +258,7 @@ public class UserController {
             @ApiResponse(code = 500, message = "Application failed to process the request")
     })
     public ResponseEntity getUserDetails(HttpServletRequest request,
-                                            HttpServletResponse response) {
+                                            HttpServletResponse response) throws PayAccessAuthException {
         User authenticatedUser = null;
         try {
             authenticatedUser = tokenService.getUserFromToken(request);
@@ -311,7 +308,7 @@ public class UserController {
     public ResponseEntity newUserSignup(@RequestBody @Valid UpdateBioDataRequest updateBioDataRequest,
                                         BindingResult bindingResult,
                                            HttpServletRequest request,
-                                           HttpServletResponse response) {
+                                           HttpServletResponse response) throws PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -398,7 +395,7 @@ public class UserController {
             FilterUserRequest filterUserRequest,
 
             HttpServletRequest request,
-            HttpServletResponse response) throws JsonProcessingException {
+            HttpServletResponse response) throws JsonProcessingException, PayAccessAuthException {
         User authenticatedUser = tokenService.getUserFromToken(request);
 
         logger.info("{}", authenticatedUser);
@@ -438,7 +435,7 @@ public class UserController {
             @ApiResponse(code = 500, message = "Application failed to process the request")
     })
     public ResponseEntity generateUserOtp(HttpServletRequest request,
-                                           HttpServletResponse response) {
+                                           HttpServletResponse response) throws PayAccessAuthException {
         User authenticatedUser = null;
         try {
             authenticatedUser = tokenService.getUserFromToken(request);
@@ -481,7 +478,7 @@ public class UserController {
                                             @RequestBody @Valid ActivateAccountRequest activateAccountRequest,
                                             BindingResult bindingResult,
                                             HttpServletRequest request,
-                                           HttpServletResponse response) {
+                                           HttpServletResponse response) throws PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -640,7 +637,7 @@ public class UserController {
             if(user==null)
             {
                 PayAccessResponse payAccessResponse = new  PayAccessResponse();
-                payAccessResponse.setStatusCode("00");
+                payAccessResponse.setStatusCode(PayAccessStatusCode.SUCCESS.label);
                 payAccessResponse.setMessage("An email containing a link to recover your password has been sent to you");
                 return ResponseEntity.status(HttpStatus.OK).body(payAccessResponse);
             }
@@ -797,7 +794,8 @@ public class UserController {
             User user = userService.getUserByEmailAddress(setPasswordRequest.getEmailAddress());
 
             String password = setPasswordRequest.getNewPassword();
-            password = BCrypt.hashpw(password, BCrypt.gensalt(12));
+//            password = BCrypt.hashpw(password, BCrypt.gensalt(12));
+            password = UtilityHelper.generateBCryptPassword(password);
             return userService.setPassword(setPasswordRequest.getEmailAddress(), setPasswordRequest.getForgotPasswordLink(),
                     password);
 
@@ -827,7 +825,7 @@ public class UserController {
             @RequestBody @Valid UpdatePasswordRequest updatePasswordRequest,
             BindingResult bindingResult,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
@@ -883,7 +881,7 @@ public class UserController {
     public ResponseEntity updateUserStatus(
             @RequestBody @Valid UpdateUserStatusRequest updateUserStatusRequest, BindingResult bindingResult,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws PayAccessAuthException {
 
         if (bindingResult.hasErrors()) {
             List errorMessageList =  bindingResult.getFieldErrors().stream().map(fe -> {
