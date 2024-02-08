@@ -3,6 +3,7 @@ package com.jamub.payaccess.api.models;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.jamub.payaccess.api.enums.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -13,6 +14,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
 @Table(name = "users")
 @JsonIgnoreProperties(value = { "password", "otp", "otpExpiryDate", "verificationLink", "forgotPasswordLink" })
 public class User implements Serializable {
@@ -64,4 +66,8 @@ public class User implements Serializable {
     private Date deletedAt;
     @Column(nullable= true)
     private Date updatedAt;
+
+    public User(String firstName) {
+        this.firstName = firstName;
+    }
 }

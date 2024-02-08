@@ -10,7 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -51,7 +50,7 @@ public class ObjectToUrlEncodedConverter implements HttpMessageConverter
     @Override
     public Object read(Class clazz, HttpInputMessage inputMessage) throws HttpMessageNotReadableException
     {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override

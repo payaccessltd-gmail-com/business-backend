@@ -25,8 +25,7 @@ public class PendingRequest {
     @Enumerated(EnumType.STRING)
     private PendingRequestStatus status;
     private String description;
-    private String branchCode;
-    private String requestDate;
+    private Date requestDate;
     @Column(length = 10000)
     private String additionalInfo;
     private Date actionOn;
